@@ -11,56 +11,67 @@
     <script src="https://cdn.jsdelivr.net/npm/simple-datatables@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <style>
+        /* Import Noto Sans SC font from Google Fonts */
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap');
-        
+
+        /* Apply the font to the body and set background color */
         body {
             font-family: 'Noto Sans SC', sans-serif;
-            background-color: #f9fafb;
+            background-color: #f9fafb; /* Light gray background */
         }
-        
+
+        /* Style for active zone tabs */
         .zone-tabs .active-tab {
-            border-bottom: 3px solid #3b82f6;
-            color: #1e40af;
-            font-weight: 600;
+            border-bottom: 3px solid #3b82f6; /* Blue bottom border */
+            color: #1e40af; /* Darker blue text */
+            font-weight: 600; /* Medium font weight */
         }
-        
-        .zone-1 { background-color: #dbeafe; }
-        .zone-1-header { background-color: #3b82f6; }
-        
-        .zone-2 { background-color: #e0f2fe; }
-        .zone-2-header { background-color: #0ea5e9; }
-        
-        .zone-3 { background-color: #f0fdfa; }
-        .zone-3-header { background-color: #14b8a6; }
-        
-        .zone-4 { background-color: #fef3c7; }
-        .zone-4-header { background-color: #f59e0b; }
-        
+
+        /* Background colors for different zones */
+        .zone-1 { background-color: #dbeafe; } /* Light blue */
+        .zone-1-header { background-color: #3b82f6; } /* Blue */
+
+        .zone-2 { background-color: #e0f2fe; } /* Lighter blue */
+        .zone-2-header { background-color: #0ea5e9; } /* Sky blue */
+
+        .zone-3 { background-color: #f0fdfa; } /* Light teal */
+        .zone-3-header { background-color: #14b8a6; } /* Teal */
+
+        .zone-4 { background-color: #fef3c7; } /* Light yellow */
+        .zone-4-header { background-color: #f59e0b; } /* Amber */
+
+        /* Make table headers sticky */
         table.dataTable thead th {
             position: sticky;
             top: 0;
             background-color: white;
-            z-index: 10;
+            z-index: 10; /* Ensure header is above table content */
         }
-        
+
+        /* Add padding to the top section of the DataTable */
         .dataTable-wrapper .dataTable-top {
             padding: 1rem 0;
         }
-        
+
+        /* Print-specific styles */
         @media print {
+            /* Hide elements with 'no-print' class */
             .no-print {
                 display: none !important;
             }
-            
+
+            /* Avoid breaking inside elements during printing */
             .print-break-inside-avoid {
                 break-inside: avoid;
             }
-            
+
+            /* Ensure full width and auto height for printing */
             html, body {
                 width: 100%;
                 height: auto;
             }
-            
+
+            /* Make sure tab content is visible when printing */
             .zone-tab-content {
                 display: block !important;
                 opacity: 1 !important;
@@ -71,36 +82,32 @@
 </head>
 <body>
     <div class="container mx-auto px-4 py-8" x-data="journalApp()">
-        <!-- Header -->
         <header class="mb-8 text-center">
             <h1 class="text-3xl font-bold text-gray-800 mb-2">2025年中科院神经科学/精神病学期刊分区表</h1>
             <p class="text-gray-600 max-w-3xl mx-auto">基于2025年中国科学院文献情报中心发布的最新期刊分区数据，包含神经科学、精神病学及相关领域的期刊分类信息。</p>
         </header>
-        
-        <!-- Controls -->
+
         <div class="bg-white rounded-lg shadow-md p-4 mb-8 no-print">
             <div class="flex flex-col md:flex-row justify-between items-center mb-4">
                 <div class="w-full md:w-2/5 mb-4 md:mb-0">
                     <div class="relative">
-                        <input 
-                            type="text" 
-                            x-model="searchTerm" 
-                            @input="filterJournals()"
-                            placeholder="搜索期刊名称、ISSN或缩写..." 
+                        <input
+                            type="text"
+                            x-model="searchTerm"
+                            @input.debounce.300ms="filterJournals()" placeholder="搜索期刊名称、ISSN或缩写..."
                             class="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                         >
                         <div class="absolute left-3 top-2.5 text-gray-400">
-                            <i class="fas fa-search"></i>
-                        </div>
+                            <i class="fas fa-search"></i> </div>
                     </div>
                 </div>
-                
+
                 <div class="w-full md:w-3/5 flex flex-wrap justify-end gap-2">
                     <div class="flex items-center mr-4">
                         <label class="mr-2 text-gray-700 text-sm">学科:</label>
-                        <select 
-                            x-model="disciplineFilter" 
-                            @change="filterJournals()" 
+                        <select
+                            x-model="disciplineFilter"
+                            @change="filterJournals()"
                             class="border rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                         >
                             <option value="all">全部</option>
@@ -109,12 +116,12 @@
                             <option value="neurology">神经病学</option>
                         </select>
                     </div>
-                    
+
                     <div class="flex items-center mr-4">
                         <label class="mr-2 text-gray-700 text-sm">收录:</label>
-                        <select 
-                            x-model="indexFilter" 
-                            @change="filterJournals()" 
+                        <select
+                            x-model="indexFilter"
+                            @change="filterJournals()"
                             class="border rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                         >
                             <option value="all">全部</option>
@@ -123,43 +130,38 @@
                             <option value="SSCI">SSCI</option>
                         </select>
                     </div>
-                    
-                    <button 
-                        @click="exportToCSV()" 
-                        class="px-3 py-1.5 bg-green-600 text-white rounded-md hover:bg-green-700 text-sm flex items-center"
+
+                    <button
+                        @click="exportToXLSX()" class="px-3 py-1.5 bg-green-600 text-white rounded-md hover:bg-green-700 text-sm flex items-center"
                     >
-                        <i class="fas fa-file-csv mr-1"></i> 导出CSV
-                    </button>
+                        <i class="fas fa-file-excel mr-1"></i> 导出XLSX </button>
                 </div>
             </div>
-            
+
             <div class="flex flex-wrap items-center text-sm text-gray-600 mt-2">
                 <span class="mr-6"><i class="fas fa-filter mr-1"></i> 当前筛选:</span>
                 <span class="inline-flex items-center bg-blue-100 text-blue-800 rounded-full px-3 py-0.5 mr-2 mb-1" x-show="disciplineFilter !== 'all'">
                     学科: <span x-text="getDisciplineName(disciplineFilter)" class="ml-1 font-medium"></span>
                     <button @click="disciplineFilter = 'all'; filterJournals()" class="ml-1 text-blue-600 hover:text-blue-800">
-                        <i class="fas fa-times-circle"></i>
-                    </button>
+                        <i class="fas fa-times-circle"></i> </button>
                 </span>
                 <span class="inline-flex items-center bg-blue-100 text-blue-800 rounded-full px-3 py-0.5 mr-2 mb-1" x-show="indexFilter !== 'all'">
                     收录: <span x-text="indexFilter" class="ml-1 font-medium"></span>
                     <button @click="indexFilter = 'all'; filterJournals()" class="ml-1 text-blue-600 hover:text-blue-800">
-                        <i class="fas fa-times-circle"></i>
-                    </button>
+                        <i class="fas fa-times-circle"></i> </button>
                 </span>
                 <span class="inline-flex items-center bg-blue-100 text-blue-800 rounded-full px-3 py-0.5 mr-2 mb-1" x-show="searchTerm !== ''">
-                    关键词: <span x-text="searchTerm" class="ml-1 font-medium"></span>
+                    关键词: "<span x-text="searchTerm" class="ml-1 font-medium"></span>"
                     <button @click="searchTerm = ''; filterJournals()" class="ml-1 text-blue-600 hover:text-blue-800">
-                        <i class="fas fa-times-circle"></i>
-                    </button>
+                        <i class="fas fa-times-circle"></i> </button>
                 </span>
+                 <span class="text-gray-500 ml-auto" x-text="`总计: ${totalFilteredJournals} 本期刊`"></span>
             </div>
         </div>
-        
-        <!-- Zone Tabs -->
+
         <div class="zone-tabs flex border-b mb-6 no-print">
             <template x-for="(tab, index) in tabs" :key="index">
-                <button 
+                <button
                     :class="{'active-tab': activeTab === tab.id}"
                     class="px-6 py-2 text-gray-600 hover:text-gray-900 focus:outline-none"
                     @click="activeTab = tab.id"
@@ -167,24 +169,20 @@
                 ></button>
             </template>
         </div>
-        
-        <!-- Zone Content -->
+
         <template x-for="(tab, index) in tabs" :key="index">
-            <div 
-                :class="{'zone-tab-content': true, 'print-break-inside-avoid': true}"
-                :style="activeTab === tab.id ? '' : 'display: none'"
+            <div
+                x-show="activeTab === tab.id" x-transition :class="{'zone-tab-content': true, 'print-break-inside-avoid': true}"
                 :id="'zone-' + tab.id"
             >
                 <div :class="`zone-${tab.id}-header text-white rounded-t-lg py-3 px-4 flex justify-between items-center`">
                     <h2 class="text-xl font-semibold" x-text="tab.name + ' 期刊列表'"></h2>
                     <span class="text-white bg-white bg-opacity-20 rounded-full px-3 py-1 text-sm">
-                        共 <span x-text="getZoneJournalCount(tab.id)"></span> 本期刊
-                    </span>
+                        共 <span x-text="getZoneJournalCount(tab.id)"></span> 本期刊 </span>
                 </div>
-                
+
                 <div :class="`zone-${tab.id} rounded-b-lg p-1 md:p-4 overflow-x-auto`">
-                    <table :id="`zone-${tab.id}-table`" class="w-full stripe hover">
-                        <thead>
+                    <table :id="`zone-${tab.id}-table`" class="w-full stripe hover simple-datatable"> <thead>
                             <tr>
                                 <th class="text-left">期刊全称（英文/中文）</th>
                                 <th class="text-left">期刊缩写</th>
@@ -200,8 +198,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <template x-for="(journal, jIndex) in filteredData[tab.id]" :key="jIndex">
-                                <tr>
+                            <template x-for="(journal, jIndex) in filteredData[tab.id]" :key="journal.issn"> <tr>
                                     <td>
                                         <div class="font-medium" x-text="journal.nameEn"></div>
                                         <div class="text-sm text-gray-600" x-text="journal.nameCn || '-'"></div>
@@ -212,7 +209,7 @@
                                     <td class="text-center" x-text="journal.hIndex || '-'"></td>
                                     <td class="text-center" x-text="journal.citeScore || '-'"></td>
                                     <td class="text-center">
-                                        <span 
+                                        <span
                                             :class="{
                                                 'px-2 py-0.5 rounded text-xs font-medium': true,
                                                 'bg-blue-100 text-blue-800': journal.jcrQuartile === 'Q1',
@@ -228,14 +225,20 @@
                                     <td class="text-center" x-text="journal.casSubcategory || '-'"></td>
                                     <td class="text-center" x-text="journal.indexing || '-'"></td>
                                     <td class="text-center">
-                                        <i 
+                                        <i
                                             :class="{
-                                                'fas': true, 
-                                                'fa-check text-green-600': journal.isOA === 'Yes', 
-                                                'fa-times text-red-600': journal.isOA === 'No'
+                                                'fas': true,
+                                                'fa-check text-green-600': journal.isOA === 'Yes',
+                                                'fa-times text-red-600': journal.isOA === 'No',
+                                                'fa-question text-gray-500': journal.isOA !== 'Yes' && journal.isOA !== 'No' // Handle other cases
                                             }"
                                         ></i>
                                     </td>
+                                </tr>
+                            </template>
+                             <template x-if="filteredData[tab.id].length === 0">
+                                <tr>
+                                    <td colspan="11" class="text-center text-gray-500 py-4">没有找到符合条件的期刊。</td>
                                 </tr>
                             </template>
                         </tbody>
@@ -243,787 +246,261 @@
                 </div>
             </div>
         </template>
-        
-        <!-- Data Sources Section -->
+
         <div class="mt-12 bg-white p-6 rounded-lg shadow-md">
             <h3 class="text-xl font-semibold text-gray-800 mb-4">数据来源</h3>
             <p class="text-gray-600 mb-4">本期刊分区表根据以下来源的数据进行整理和汇总：</p>
-            
+
             <div class="space-y-2">
                 <div class="flex items-start">
                     <div class="flex-shrink-0 h-5 w-5 text-blue-600">
-                        <i class="fas fa-link"></i>
-                    </div>
+                        <i class="fas fa-link"></i> </div>
                     <div class="ml-3">
                         <p class="text-gray-700">
-                            <a href="https://www.fenqubiao.com/" class="text-blue-600 hover:underline" target="_blank">中国科学院文献情报中心期刊分区表</a> - 
+                            <a href="https://www.fenqubiao.com/" class="text-blue-600 hover:underline" target="_blank">中国科学院文献情报中心期刊分区表</a> -
                             《期刊分区表》是中国科学院文献情报中心的科学研究成果，自2004年发布，延续至今
                         </p>
                     </div>
                 </div>
-                
+
                 <div class="flex items-start">
                     <div class="flex-shrink-0 h-5 w-5 text-blue-600">
-                        <i class="fas fa-link"></i>
-                    </div>
+                        <i class="fas fa-link"></i> </div>
                     <div class="ml-3">
                         <p class="text-gray-700">
-                            <a href="https://www.letpub.com.cn/" class="text-blue-600 hover:underline" target="_blank">LetPub学术资源</a> - 
+                            <a href="https://www.letpub.com.cn/" class="text-blue-600 hover:underline" target="_blank">LetPub学术资源</a> -
                             提供最新SCI期刊影响因子查询及投稿分析系统
                         </p>
                     </div>
                 </div>
-                
+
                 <div class="flex items-start">
                     <div class="flex-shrink-0 h-5 w-5 text-blue-600">
-                        <i class="fas fa-link"></i>
-                    </div>
+                        <i class="fas fa-link"></i> </div>
                     <div class="ml-3">
                         <p class="text-gray-700">
-                            <a href="https://jcr.clarivate.com/" class="text-blue-600 hover:underline" target="_blank">Journal Citation Reports (JCR)</a> - 
+                            <a href="https://jcr.clarivate.com/" class="text-blue-600 hover:underline" target="_blank">Journal Citation Reports (JCR)</a> -
                             由科睿唯安（Clarivate Analytics）提供的期刊引证报告
                         </p>
                     </div>
                 </div>
             </div>
-            
+
             <div class="mt-6 text-sm text-gray-500">
                 <p>数据更新时间：2025年3月20日</p>
                 <p>注意：本表仅供学术参考，具体期刊分区情况请以官方发布为准。</p>
             </div>
         </div>
-        
-        <!-- Footer -->
+
         <footer class="mt-8 pt-8 border-t border-gray-200 text-center text-gray-600 text-sm">
             <p>© 2025 期刊分区查询系统 | 基于中国科学院期刊分区数据</p>
         </footer>
     </div>
 
     <script>
+        // Alpine.js component definition
         function journalApp() {
             return {
-                activeTab: '1',
-                searchTerm: '',
-                disciplineFilter: 'all',
-                indexFilter: 'all',
-                tabs: [
+                activeTab: '1', // Default active tab is Zone 1
+                searchTerm: '', // Search input model
+                disciplineFilter: 'all', // Discipline filter model
+                indexFilter: 'all', // Indexing filter model
+                tabs: [ // Tab definitions
                     { id: '1', name: '一区' },
                     { id: '2', name: '二区' },
                     { id: '3', name: '三区' },
                     { id: '4', name: '四区' }
                 ],
-                dataTables: {},
+                dataTables: {}, // Object to hold DataTable instances
+                // Sample journal data (should be loaded externally in a real app)
                 journalData: {
-                    '1': [
-                        {
-                            nameEn: "Nature Neuroscience",
-                            nameCn: "自然神经科学",
-                            abbr: "NAT NEUROSCI",
-                            issn: "1097-6256",
-                            impactFactor: "24.884",
-                            hIndex: "401",
-                            citeScore: "26.9",
-                            jcrQuartile: "Q1",
-                            casCategory: "医学",
-                            casSubcategory: "神经科学",
-                            indexing: "SCI",
-                            isOA: "No",
-                            discipline: "neuroscience"
-                        },
-                        {
-                            nameEn: "Neuron",
-                            nameCn: "神经元",
-                            abbr: "NEURON",
-                            issn: "0896-6273",
-                            impactFactor: "18.882",
-                            hIndex: "479",
-                            citeScore: "19.5",
-                            jcrQuartile: "Q1",
-                            casCategory: "医学",
-                            casSubcategory: "神经科学",
-                            indexing: "SCI",
-                            isOA: "No",
-                            discipline: "neuroscience"
-                        },
-                        {
-                            nameEn: "Molecular Psychiatry",
-                            nameCn: "分子精神病学",
-                            abbr: "MOL PSYCHIATR",
-                            issn: "1359-4184",
-                            impactFactor: "15.992",
-                            hIndex: "213",
-                            citeScore: "17.3",
-                            jcrQuartile: "Q1",
-                            casCategory: "医学",
-                            casSubcategory: "精神病学",
-                            indexing: "SCI",
-                            isOA: "No",
-                            discipline: "psychiatry"
-                        },
-                        {
-                            nameEn: "Biological Psychiatry",
-                            nameCn: "生物精神病学",
-                            abbr: "BIOL PSYCHIAT",
-                            issn: "0006-3223",
-                            impactFactor: "13.382",
-                            hIndex: "290",
-                            citeScore: "18.8",
-                            jcrQuartile: "Q1",
-                            casCategory: "医学",
-                            casSubcategory: "精神病学",
-                            indexing: "SCIE",
-                            isOA: "No",
-                            discipline: "psychiatry"
-                        },
-                        {
-                            nameEn: "JAMA Psychiatry",
-                            nameCn: "美国医学会精神病学",
-                            abbr: "JAMA PSYCHIATRY",
-                            issn: "2168-622X",
-                            impactFactor: "21.596",
-                            hIndex: "172",
-                            citeScore: "23.4",
-                            jcrQuartile: "Q1",
-                            casCategory: "医学",
-                            casSubcategory: "精神病学",
-                            indexing: "SCI",
-                            isOA: "No",
-                            discipline: "psychiatry"
-                        },
-                        {
-                            nameEn: "Brain",
-                            nameCn: "脑",
-                            abbr: "BRAIN",
-                            issn: "0006-8950",
-                            impactFactor: "13.501",
-                            hIndex: "313",
-                            citeScore: "15.9",
-                            jcrQuartile: "Q1",
-                            casCategory: "医学",
-                            casSubcategory: "神经科学",
-                            indexing: "SCI",
-                            isOA: "No",
-                            discipline: "neuroscience"
-                        },
-                        {
-                            nameEn: "Annals of Neurology",
-                            nameCn: "神经病学年鉴",
-                            abbr: "ANN NEUROL",
-                            issn: "0364-5134",
-                            impactFactor: "10.422",
-                            hIndex: "246",
-                            citeScore: "13.1",
-                            jcrQuartile: "Q1",
-                            casCategory: "医学",
-                            casSubcategory: "神经病学",
-                            indexing: "SCI",
-                            isOA: "No",
-                            discipline: "neurology"
-                        },
-                        {
-                            nameEn: "World Psychiatry",
-                            nameCn: "世界精神病学",
-                            abbr: "WORLD PSYCHIATRY",
-                            issn: "1723-8617",
-                            impactFactor: "79.683",
-                            hIndex: "121",
-                            citeScore: "65.3",
-                            jcrQuartile: "Q1",
-                            casCategory: "医学",
-                            casSubcategory: "精神病学",
-                            indexing: "SCI",
-                            isOA: "Yes",
-                            discipline: "psychiatry"
-                        },
-                        {
-                            nameEn: "The Lancet Psychiatry",
-                            nameCn: "柳叶刀精神病学",
-                            abbr: "LANCET PSYCHIATRY",
-                            issn: "2215-0366",
-                            impactFactor: "27.083",
-                            hIndex: "112",
-                            citeScore: "24.7",
-                            jcrQuartile: "Q1",
-                            casCategory: "医学",
-                            casSubcategory: "精神病学",
-                            indexing: "SCI",
-                            isOA: "No",
-                            discipline: "psychiatry"
-                        },
-                        {
-                            nameEn: "Trends in Neurosciences",
-                            nameCn: "神经科学趋势",
-                            abbr: "TRENDS NEUROSCI",
-                            issn: "0166-2236",
-                            impactFactor: "17.755",
-                            hIndex: "275",
-                            citeScore: "17.2",
-                            jcrQuartile: "Q1",
-                            casCategory: "医学",
-                            casSubcategory: "神经科学",
-                            indexing: "SCI",
-                            isOA: "No",
-                            discipline: "neuroscience"
-                        }
+                     '1': [ // Zone 1 Data
+                        { nameEn: "Nature Neuroscience", nameCn: "自然神经科学", abbr: "NAT NEUROSCI", issn: "1097-6256", impactFactor: "24.884", hIndex: "401", citeScore: "26.9", jcrQuartile: "Q1", casCategory: "医学", casSubcategory: "神经科学", indexing: "SCI", isOA: "No", discipline: "neuroscience" },
+                        { nameEn: "Neuron", nameCn: "神经元", abbr: "NEURON", issn: "0896-6273", impactFactor: "18.882", hIndex: "479", citeScore: "19.5", jcrQuartile: "Q1", casCategory: "医学", casSubcategory: "神经科学", indexing: "SCI", isOA: "No", discipline: "neuroscience" },
+                        { nameEn: "Molecular Psychiatry", nameCn: "分子精神病学", abbr: "MOL PSYCHIATR", issn: "1359-4184", impactFactor: "15.992", hIndex: "213", citeScore: "17.3", jcrQuartile: "Q1", casCategory: "医学", casSubcategory: "精神病学", indexing: "SCI", isOA: "No", discipline: "psychiatry" },
+                        { nameEn: "Biological Psychiatry", nameCn: "生物精神病学", abbr: "BIOL PSYCHIAT", issn: "0006-3223", impactFactor: "13.382", hIndex: "290", citeScore: "18.8", jcrQuartile: "Q1", casCategory: "医学", casSubcategory: "精神病学", indexing: "SCIE", isOA: "No", discipline: "psychiatry" },
+                        { nameEn: "JAMA Psychiatry", nameCn: "美国医学会精神病学", abbr: "JAMA PSYCHIATRY", issn: "2168-622X", impactFactor: "21.596", hIndex: "172", citeScore: "23.4", jcrQuartile: "Q1", casCategory: "医学", casSubcategory: "精神病学", indexing: "SCI", isOA: "No", discipline: "psychiatry" },
+                        { nameEn: "Brain", nameCn: "脑", abbr: "BRAIN", issn: "0006-8950", impactFactor: "13.501", hIndex: "313", citeScore: "15.9", jcrQuartile: "Q1", casCategory: "医学", casSubcategory: "神经科学", indexing: "SCI", isOA: "No", discipline: "neuroscience" },
+                        { nameEn: "Annals of Neurology", nameCn: "神经病学年鉴", abbr: "ANN NEUROL", issn: "0364-5134", impactFactor: "10.422", hIndex: "246", citeScore: "13.1", jcrQuartile: "Q1", casCategory: "医学", casSubcategory: "神经病学", indexing: "SCI", isOA: "No", discipline: "neurology" },
+                        { nameEn: "World Psychiatry", nameCn: "世界精神病学", abbr: "WORLD PSYCHIATRY", issn: "1723-8617", impactFactor: "79.683", hIndex: "121", citeScore: "65.3", jcrQuartile: "Q1", casCategory: "医学", casSubcategory: "精神病学", indexing: "SCI", isOA: "Yes", discipline: "psychiatry" },
+                        { nameEn: "The Lancet Psychiatry", nameCn: "柳叶刀精神病学", abbr: "LANCET PSYCHIATRY", issn: "2215-0366", impactFactor: "27.083", hIndex: "112", citeScore: "24.7", jcrQuartile: "Q1", casCategory: "医学", casSubcategory: "精神病学", indexing: "SCI", isOA: "No", discipline: "psychiatry" },
+                        { nameEn: "Trends in Neurosciences", nameCn: "神经科学趋势", abbr: "TRENDS NEUROSCI", issn: "0166-2236", impactFactor: "17.755", hIndex: "275", citeScore: "17.2", jcrQuartile: "Q1", casCategory: "医学", casSubcategory: "神经科学", indexing: "SCI", isOA: "No", discipline: "neuroscience" }
                     ],
-                    '2': [
-                        {
-                            nameEn: "Journal of Neuroscience",
-                            nameCn: "神经科学杂志",
-                            abbr: "J NEUROSCI",
-                            issn: "0270-6474",
-                            impactFactor: "6.673",
-                            hIndex: "409",
-                            citeScore: "9.1",
-                            jcrQuartile: "Q1",
-                            casCategory: "医学",
-                            casSubcategory: "神经科学",
-                            indexing: "SCI",
-                            isOA: "No",
-                            discipline: "neuroscience"
-                        },
-                        {
-                            nameEn: "Neuropsychopharmacology",
-                            nameCn: "神经精神药理学",
-                            abbr: "NEUROPSYCHOPHARMACOL",
-                            issn: "0893-133X",
-                            impactFactor: "8.294",
-                            hIndex: "235",
-                            citeScore: "10.8",
-                            jcrQuartile: "Q1",
-                            casCategory: "医学",
-                            casSubcategory: "精神病学",
-                            indexing: "SCI",
-                            isOA: "No",
-                            discipline: "psychiatry"
-                        },
-                        {
-                            nameEn: "European Neuropsychopharmacology",
-                            nameCn: "欧洲神经精神药理学",
-                            abbr: "EUR NEUROPSYCHOPHARM",
-                            issn: "0924-977X",
-                            impactFactor: "6.292",
-                            hIndex: "139",
-                            citeScore: "6.7",
-                            jcrQuartile: "Q1",
-                            casCategory: "医学",
-                            casSubcategory: "精神病学",
-                            indexing: "SCI",
-                            isOA: "No",
-                            discipline: "psychiatry"
-                        },
-                        {
-                            nameEn: "Brain Stimulation",
-                            nameCn: "大脑刺激",
-                            abbr: "BRAIN STIMUL",
-                            issn: "1935-861X",
-                            impactFactor: "8.955",
-                            hIndex: "115",
-                            citeScore: "12.7",
-                            jcrQuartile: "Q1",
-                            casCategory: "医学",
-                            casSubcategory: "神经科学",
-                            indexing: "SCI",
-                            isOA: "No",
-                            discipline: "neuroscience"
-                        },
-                        {
-                            nameEn: "Neurology",
-                            nameCn: "神经病学",
-                            abbr: "NEUROLOGY",
-                            issn: "0028-3878",
-                            impactFactor: "9.91",
-                            hIndex: "335",
-                            citeScore: "11.6",
-                            jcrQuartile: "Q1",
-                            casCategory: "医学",
-                            casSubcategory: "神经病学",
-                            indexing: "SCI",
-                            isOA: "No",
-                            discipline: "neurology"
-                        },
-                        {
-                            nameEn: "Brain Pathology",
-                            nameCn: "脑病理学",
-                            abbr: "BRAIN PATHOL",
-                            issn: "1015-6305",
-                            impactFactor: "7.528",
-                            hIndex: "118",
-                            citeScore: "8.3",
-                            jcrQuartile: "Q1",
-                            casCategory: "医学",
-                            casSubcategory: "神经科学",
-                            indexing: "SCI",
-                            isOA: "No",
-                            discipline: "neuroscience"
-                        },
-                        {
-                            nameEn: "Journal of Psychiatric Research",
-                            nameCn: "精神病学研究杂志",
-                            abbr: "J PSYCHIATR RES",
-                            issn: "0022-3956",
-                            impactFactor: "5.168",
-                            hIndex: "146",
-                            citeScore: "7.3",
-                            jcrQuartile: "Q1",
-                            casCategory: "医学",
-                            casSubcategory: "精神病学",
-                            indexing: "SCI",
-                            isOA: "No",
-                            discipline: "psychiatry"
-                        },
-                        {
-                            nameEn: "Schizophrenia Bulletin",
-                            nameCn: "精神分裂症公报",
-                            abbr: "SCHIZOPHR BULL",
-                            issn: "0586-7614",
-                            impactFactor: "9.306",
-                            hIndex: "211",
-                            citeScore: "11.5",
-                            jcrQuartile: "Q1",
-                            casCategory: "医学",
-                            casSubcategory: "精神病学",
-                            indexing: "SCI",
-                            isOA: "No",
-                            discipline: "psychiatry"
-                        },
-                        {
-                            nameEn: "Cortex",
-                            nameCn: "大脑皮层",
-                            abbr: "CORTEX",
-                            issn: "0010-9452",
-                            impactFactor: "5.217",
-                            hIndex: "148",
-                            citeScore: "6.5",
-                            jcrQuartile: "Q1",
-                            casCategory: "医学",
-                            casSubcategory: "神经科学",
-                            indexing: "SCI",
-                            isOA: "No",
-                            discipline: "neuroscience"
-                        },
-                        {
-                            nameEn: "Developmental Cognitive Neuroscience",
-                            nameCn: "发育认知神经科学",
-                            abbr: "DEV COGN NEUROSCI",
-                            issn: "1878-9293",
-                            impactFactor: "6.104",
-                            hIndex: "95",
-                            citeScore: "8.9",
-                            jcrQuartile: "Q1",
-                            casCategory: "医学",
-                            casSubcategory: "神经科学",
-                            indexing: "SCI",
-                            isOA: "Yes",
-                            discipline: "neuroscience"
-                        }
+                    '2': [ // Zone 2 Data
+                         { nameEn: "Journal of Neuroscience", nameCn: "神经科学杂志", abbr: "J NEUROSCI", issn: "0270-6474", impactFactor: "6.673", hIndex: "409", citeScore: "9.1", jcrQuartile: "Q1", casCategory: "医学", casSubcategory: "神经科学", indexing: "SCI", isOA: "No", discipline: "neuroscience" },
+                         { nameEn: "Neuropsychopharmacology", nameCn: "神经精神药理学", abbr: "NEUROPSYCHOPHARMACOL", issn: "0893-133X", impactFactor: "8.294", hIndex: "235", citeScore: "10.8", jcrQuartile: "Q1", casCategory: "医学", casSubcategory: "精神病学", indexing: "SCI", isOA: "No", discipline: "psychiatry" },
+                         { nameEn: "European Neuropsychopharmacology", nameCn: "欧洲神经精神药理学", abbr: "EUR NEUROPSYCHOPHARM", issn: "0924-977X", impactFactor: "6.292", hIndex: "139", citeScore: "6.7", jcrQuartile: "Q1", casCategory: "医学", casSubcategory: "精神病学", indexing: "SCI", isOA: "No", discipline: "psychiatry" },
+                         { nameEn: "Brain Stimulation", nameCn: "大脑刺激", abbr: "BRAIN STIMUL", issn: "1935-861X", impactFactor: "8.955", hIndex: "115", citeScore: "12.7", jcrQuartile: "Q1", casCategory: "医学", casSubcategory: "神经科学", indexing: "SCI", isOA: "No", discipline: "neuroscience" },
+                         { nameEn: "Neurology", nameCn: "神经病学", abbr: "NEUROLOGY", issn: "0028-3878", impactFactor: "9.91", hIndex: "335", citeScore: "11.6", jcrQuartile: "Q1", casCategory: "医学", casSubcategory: "神经病学", indexing: "SCI", isOA: "No", discipline: "neurology" },
+                         { nameEn: "Brain Pathology", nameCn: "脑病理学", abbr: "BRAIN PATHOL", issn: "1015-6305", impactFactor: "7.528", hIndex: "118", citeScore: "8.3", jcrQuartile: "Q1", casCategory: "医学", casSubcategory: "神经科学", indexing: "SCI", isOA: "No", discipline: "neuroscience" },
+                         { nameEn: "Journal of Psychiatric Research", nameCn: "精神病学研究杂志", abbr: "J PSYCHIATR RES", issn: "0022-3956", impactFactor: "5.168", hIndex: "146", citeScore: "7.3", jcrQuartile: "Q1", casCategory: "医学", casSubcategory: "精神病学", indexing: "SCI", isOA: "No", discipline: "psychiatry" },
+                         { nameEn: "Schizophrenia Bulletin", nameCn: "精神分裂症公报", abbr: "SCHIZOPHR BULL", issn: "0586-7614", impactFactor: "9.306", hIndex: "211", citeScore: "11.5", jcrQuartile: "Q1", casCategory: "医学", casSubcategory: "精神病学", indexing: "SCI", isOA: "No", discipline: "psychiatry" },
+                         { nameEn: "Cortex", nameCn: "大脑皮层", abbr: "CORTEX", issn: "0010-9452", impactFactor: "5.217", hIndex: "148", citeScore: "6.5", jcrQuartile: "Q1", casCategory: "医学", casSubcategory: "神经科学", indexing: "SCI", isOA: "No", discipline: "neuroscience" },
+                         { nameEn: "Developmental Cognitive Neuroscience", nameCn: "发育认知神经科学", abbr: "DEV COGN NEUROSCI", issn: "1878-9293", impactFactor: "6.104", hIndex: "95", citeScore: "8.9", jcrQuartile: "Q1", casCategory: "医学", casSubcategory: "神经科学", indexing: "SCI", isOA: "Yes", discipline: "neuroscience" }
                     ],
-                    '3': [
-                        {
-                            nameEn: "ACS Chemical Neuroscience",
-                            nameCn: "ACS化学神经科学",
-                            abbr: "ACS CHEM NEUROSCI",
-                            issn: "1948-7193",
-                            impactFactor: "4.418",
-                            hIndex: "87",
-                            citeScore: "6.8",
-                            jcrQuartile: "Q2",
-                            casCategory: "医学",
-                            casSubcategory: "神经科学",
-                            indexing: "SCIE",
-                            isOA: "No",
-                            discipline: "neuroscience"
-                        },
-                        {
-                            nameEn: "International Journal of Neuropsychopharmacology",
-                            nameCn: "国际神经精神药理学杂志",
-                            abbr: "INT J NEUROPSYCHOPH",
-                            issn: "1461-1457",
-                            impactFactor: "4.207",
-                            hIndex: "102",
-                            citeScore: "5.7",
-                            jcrQuartile: "Q2",
-                            casCategory: "医学",
-                            casSubcategory: "精神病学",
-                            indexing: "SCI",
-                            isOA: "Yes",
-                            discipline: "psychiatry"
-                        },
-                        {
-                            nameEn: "Neuropsychology Review",
-                            nameCn: "神经心理学评论",
-                            abbr: "NEUROPSYCHOL REV",
-                            issn: "1040-7308",
-                            impactFactor: "5.358",
-                            hIndex: "100",
-                            citeScore: "7.6",
-                            jcrQuartile: "Q2",
-                            casCategory: "医学",
-                            casSubcategory: "神经科学",
-                            indexing: "SSCI",
-                            isOA: "No",
-                            discipline: "neuroscience"
-                        },
-                        {
-                            nameEn: "Journal of Attention Disorders",
-                            nameCn: "注意力障碍杂志",
-                            abbr: "J ATTEN DISORD",
-                            issn: "1087-0547",
-                            impactFactor: "4.365",
-                            hIndex: "94",
-                            citeScore: "6.1",
-                            jcrQuartile: "Q2",
-                            casCategory: "医学",
-                            casSubcategory: "精神病学",
-                            indexing: "SSCI",
-                            isOA: "No",
-                            discipline: "psychiatry"
-                        },
-                        {
-                            nameEn: "Journal of Neuropsychiatry and Clinical Neurosciences",
-                            nameCn: "神经精神病学与临床神经科学杂志",
-                            abbr: "J NEUROPSYCH CLIN N",
-                            issn: "0895-0172",
-                            impactFactor: "3.704",
-                            hIndex: "89",
-                            citeScore: "4.1",
-                            jcrQuartile: "Q2",
-                            casCategory: "医学",
-                            casSubcategory: "神经病学",
-                            indexing: "SCI",
-                            isOA: "No",
-                            discipline: "neurology"
-                        },
-                        {
-                            nameEn: "CNS Neuroscience & Therapeutics",
-                            nameCn: "中枢神经系统神经科学与治疗",
-                            abbr: "CNS NEUROSCI THER",
-                            issn: "1755-5930",
-                            impactFactor: "4.107",
-                            hIndex: "62",
-                            citeScore: "5.8",
-                            jcrQuartile: "Q2",
-                            casCategory: "医学",
-                            casSubcategory: "神经科学",
-                            indexing: "SCI",
-                            isOA: "Yes",
-                            discipline: "neuroscience"
-                        },
-                        {
-                            nameEn: "Psychiatry Research",
-                            nameCn: "精神病学研究",
-                            abbr: "PSYCHIAT RES",
-                            issn: "0165-1781",
-                            impactFactor: "3.222",
-                            hIndex: "144",
-                            citeScore: "3.9",
-                            jcrQuartile: "Q2",
-                            casCategory: "医学",
-                            casSubcategory: "精神病学",
-                            indexing: "SCI",
-                            isOA: "No",
-                            discipline: "psychiatry"
-                        },
-                        {
-                            nameEn: "Journal of Neurology",
-                            nameCn: "神经病学杂志",
-                            abbr: "J NEUROL",
-                            issn: "0340-5354",
-                            impactFactor: "4.849",
-                            hIndex: "154",
-                            citeScore: "5.1",
-                            jcrQuartile: "Q1",
-                            casCategory: "医学",
-                            casSubcategory: "神经病学",
-                            indexing: "SCI",
-                            isOA: "No",
-                            discipline: "neurology"
-                        },
-                        {
-                            nameEn: "Journal of Neurodevelopmental Disorders",
-                            nameCn: "神经发育障碍杂志",
-                            abbr: "J NEURODEV DISORD",
-                            issn: "1866-1947",
-                            impactFactor: "3.785",
-                            hIndex: "55",
-                            citeScore: "5.3",
-                            jcrQuartile: "Q2",
-                            casCategory: "医学",
-                            casSubcategory: "神经科学",
-                            indexing: "SCI",
-                            isOA: "Yes",
-                            discipline: "neuroscience"
-                        },
-                        {
-                            nameEn: "Molecular Autism",
-                            nameCn: "分子自闭症",
-                            abbr: "MOL AUTISM",
-                            issn: "2040-2392",
-                            impactFactor: "5.712",
-                            hIndex: "71",
-                            citeScore: "7.9",
-                            jcrQuartile: "Q1",
-                            casCategory: "医学",
-                            casSubcategory: "精神病学",
-                            indexing: "SCI",
-                            isOA: "Yes",
-                            discipline: "psychiatry"
-                        }
+                    '3': [ // Zone 3 Data
+                         { nameEn: "ACS Chemical Neuroscience", nameCn: "ACS化学神经科学", abbr: "ACS CHEM NEUROSCI", issn: "1948-7193", impactFactor: "4.418", hIndex: "87", citeScore: "6.8", jcrQuartile: "Q2", casCategory: "医学", casSubcategory: "神经科学", indexing: "SCIE", isOA: "No", discipline: "neuroscience" },
+                         { nameEn: "International Journal of Neuropsychopharmacology", nameCn: "国际神经精神药理学杂志", abbr: "INT J NEUROPSYCHOPH", issn: "1461-1457", impactFactor: "4.207", hIndex: "102", citeScore: "5.7", jcrQuartile: "Q2", casCategory: "医学", casSubcategory: "精神病学", indexing: "SCI", isOA: "Yes", discipline: "psychiatry" },
+                         { nameEn: "Neuropsychology Review", nameCn: "神经心理学评论", abbr: "NEUROPSYCHOL REV", issn: "1040-7308", impactFactor: "5.358", hIndex: "100", citeScore: "7.6", jcrQuartile: "Q2", casCategory: "医学", casSubcategory: "神经科学", indexing: "SSCI", isOA: "No", discipline: "neuroscience" },
+                         { nameEn: "Journal of Attention Disorders", nameCn: "注意力障碍杂志", abbr: "J ATTEN DISORD", issn: "1087-0547", impactFactor: "4.365", hIndex: "94", citeScore: "6.1", jcrQuartile: "Q2", casCategory: "医学", casSubcategory: "精神病学", indexing: "SSCI", isOA: "No", discipline: "psychiatry" },
+                         { nameEn: "Journal of Neuropsychiatry and Clinical Neurosciences", nameCn: "神经精神病学与临床神经科学杂志", abbr: "J NEUROPSYCH CLIN N", issn: "0895-0172", impactFactor: "3.704", hIndex: "89", citeScore: "4.1", jcrQuartile: "Q2", casCategory: "医学", casSubcategory: "神经病学", indexing: "SCI", isOA: "No", discipline: "neurology" },
+                         { nameEn: "CNS Neuroscience & Therapeutics", nameCn: "中枢神经系统神经科学与治疗", abbr: "CNS NEUROSCI THER", issn: "1755-5930", impactFactor: "4.107", hIndex: "62", citeScore: "5.8", jcrQuartile: "Q2", casCategory: "医学", casSubcategory: "神经科学", indexing: "SCI", isOA: "Yes", discipline: "neuroscience" },
+                         { nameEn: "Psychiatry Research", nameCn: "精神病学研究", abbr: "PSYCHIAT RES", issn: "0165-1781", impactFactor: "3.222", hIndex: "144", citeScore: "3.9", jcrQuartile: "Q2", casCategory: "医学", casSubcategory: "精神病学", indexing: "SCI", isOA: "No", discipline: "psychiatry" },
+                         { nameEn: "Journal of Neurology", nameCn: "神经病学杂志", abbr: "J NEUROL", issn: "0340-5354", impactFactor: "4.849", hIndex: "154", citeScore: "5.1", jcrQuartile: "Q1", casCategory: "医学", casSubcategory: "神经病学", indexing: "SCI", isOA: "No", discipline: "neurology" },
+                         { nameEn: "Journal of Neurodevelopmental Disorders", nameCn: "神经发育障碍杂志", abbr: "J NEURODEV DISORD", issn: "1866-1947", impactFactor: "3.785", hIndex: "55", citeScore: "5.3", jcrQuartile: "Q2", casCategory: "医学", casSubcategory: "神经科学", indexing: "SCI", isOA: "Yes", discipline: "neuroscience" },
+                         { nameEn: "Molecular Autism", nameCn: "分子自闭症", abbr: "MOL AUTISM", issn: "2040-2392", impactFactor: "5.712", hIndex: "71", citeScore: "7.9", jcrQuartile: "Q1", casCategory: "医学", casSubcategory: "精神病学", indexing: "SCI", isOA: "Yes", discipline: "psychiatry" }
                     ],
-                    '4': [
-                        {
-                            nameEn: "Neuroscience Letters",
-                            nameCn: "神经科学快报",
-                            abbr: "NEUROSCI LETT",
-                            issn: "0304-3940",
-                            impactFactor: "3.046",
-                            hIndex: "155",
-                            citeScore: "3.5",
-                            jcrQuartile: "Q3",
-                            casCategory: "医学",
-                            casSubcategory: "神经科学",
-                            indexing: "SCIE",
-                            isOA: "No",
-                            discipline: "neuroscience"
-                        },
-                        {
-                            nameEn: "Neuropsychiatric Disease and Treatment",
-                            nameCn: "神经精神疾病及治疗",
-                            abbr: "NEUROPSYCH DIS TREAT",
-                            issn: "1176-6328",
-                            impactFactor: "2.808",
-                            hIndex: "78",
-                            citeScore: "3.4",
-                            jcrQuartile: "Q3",
-                            casCategory: "医学",
-                            casSubcategory: "精神病学",
-                            indexing: "SCIE",
-                            isOA: "Yes",
-                            discipline: "psychiatry"
-                        },
-                        {
-                            nameEn: "Neurological Sciences",
-                            nameCn: "神经学科学",
-                            abbr: "NEUROL SCI",
-                            issn: "1590-1874",
-                            impactFactor: "3.307",
-                            hIndex: "84",
-                            citeScore: "3.8",
-                            jcrQuartile: "Q3",
-                            casCategory: "医学",
-                            casSubcategory: "神经病学",
-                            indexing: "SCI",
-                            isOA: "No",
-                            discipline: "neurology"
-                        },
-                        {
-                            nameEn: "General Psychiatry",
-                            nameCn: "普通精神病学",
-                            abbr: "GEN PSYCHIATR",
-                            issn: "2517-729X",
-                            impactFactor: "3.242",
-                            hIndex: "26",
-                            citeScore: "4.2",
-                            jcrQuartile: "Q3",
-                            casCategory: "医学",
-                            casSubcategory: "精神病学",
-                            indexing: "SCIE",
-                            isOA: "Yes",
-                            discipline: "psychiatry"
-                        },
-                        {
-                            nameEn: "Neuropsychiatry",
-                            nameCn: "神经精神病学",
-                            abbr: "NEUROPSYCHIATRY",
-                            issn: "1758-2008",
-                            impactFactor: "2.154",
-                            hIndex: "34",
-                            citeScore: "2.7",
-                            jcrQuartile: "Q3",
-                            casCategory: "医学",
-                            casSubcategory: "精神病学",
-                            indexing: "ESCI",
-                            isOA: "No",
-                            discipline: "psychiatry"
-                        },
-                        {
-                            nameEn: "Neurology International",
-                            nameCn: "国际神经病学",
-                            abbr: "NEUROL INT",
-                            issn: "2035-8377",
-                            impactFactor: "2.012",
-                            hIndex: "21",
-                            citeScore: "2.3",
-                            jcrQuartile: "Q4",
-                            casCategory: "医学",
-                            casSubcategory: "神经病学",
-                            indexing: "ESCI",
-                            isOA: "Yes",
-                            discipline: "neurology"
-                        },
-                        {
-                            nameEn: "Frontiers in Behavioral Neuroscience",
-                            nameCn: "行为神经科学前沿",
-                            abbr: "FRONT BEHAV NEUROSCI",
-                            issn: "1662-5153",
-                            impactFactor: "3.099",
-                            hIndex: "97",
-                            citeScore: "4.7",
-                            jcrQuartile: "Q3",
-                            casCategory: "医学",
-                            casSubcategory: "神经科学",
-                            indexing: "SCIE",
-                            isOA: "Yes",
-                            discipline: "neuroscience"
-                        },
-                        {
-                            nameEn: "Behavioural Neurology",
-                            nameCn: "行为神经病学",
-                            abbr: "BEHAV NEUROL",
-                            issn: "0953-4180",
-                            impactFactor: "2.521",
-                            hIndex: "52",
-                            citeScore: "2.9",
-                            jcrQuartile: "Q3",
-                            casCategory: "医学",
-                            casSubcategory: "神经科学",
-                            indexing: "SCIE",
-                            isOA: "Yes",
-                            discipline: "neuroscience"
-                        },
-                        {
-                            nameEn: "Asian Journal of Psychiatry",
-                            nameCn: "亚洲精神病学杂志",
-                            abbr: "ASIAN J PSYCHIATR",
-                            issn: "1876-2018",
-                            impactFactor: "3.129",
-                            hIndex: "52",
-                            citeScore: "3.6",
-                            jcrQuartile: "Q3",
-                            casCategory: "医学",
-                            casSubcategory: "精神病学",
-                            indexing: "SCIE",
-                            isOA: "No",
-                            discipline: "psychiatry"
-                        },
-                        {
-                            nameEn: "Australasian Psychiatry",
-                            nameCn: "澳大拉西亚精神病学",
-                            abbr: "AUSTRALAS PSYCHIATRY",
-                            issn: "1039-8562",
-                            impactFactor: "1.233",
-                            hIndex: "44",
-                            citeScore: "1.6",
-                            jcrQuartile: "Q4",
-                            casCategory: "医学",
-                            casSubcategory: "精神病学",
-                            indexing: "SSCI",
-                            isOA: "No",
-                            discipline: "psychiatry"
-                        }
+                    '4': [ // Zone 4 Data
+                         { nameEn: "Neuroscience Letters", nameCn: "神经科学快报", abbr: "NEUROSCI LETT", issn: "0304-3940", impactFactor: "3.046", hIndex: "155", citeScore: "3.5", jcrQuartile: "Q3", casCategory: "医学", casSubcategory: "神经科学", indexing: "SCIE", isOA: "No", discipline: "neuroscience" },
+                         { nameEn: "Neuropsychiatric Disease and Treatment", nameCn: "神经精神疾病及治疗", abbr: "NEUROPSYCH DIS TREAT", issn: "1176-6328", impactFactor: "2.808", hIndex: "78", citeScore: "3.4", jcrQuartile: "Q3", casCategory: "医学", casSubcategory: "精神病学", indexing: "SCIE", isOA: "Yes", discipline: "psychiatry" },
+                         { nameEn: "Neurological Sciences", nameCn: "神经学科学", abbr: "NEUROL SCI", issn: "1590-1874", impactFactor: "3.307", hIndex: "84", citeScore: "3.8", jcrQuartile: "Q3", casCategory: "医学", casSubcategory: "神经病学", indexing: "SCI", isOA: "No", discipline: "neurology" },
+                         { nameEn: "General Psychiatry", nameCn: "普通精神病学", abbr: "GEN PSYCHIATR", issn: "2517-729X", impactFactor: "3.242", hIndex: "26", citeScore: "4.2", jcrQuartile: "Q3", casCategory: "医学", casSubcategory: "精神病学", indexing: "SCIE", isOA: "Yes", discipline: "psychiatry" },
+                         { nameEn: "Neuropsychiatry", nameCn: "神经精神病学", abbr: "NEUROPSYCHIATRY", issn: "1758-2008", impactFactor: "2.154", hIndex: "34", citeScore: "2.7", jcrQuartile: "Q3", casCategory: "医学", casSubcategory: "精神病学", indexing: "ESCI", isOA: "No", discipline: "psychiatry" },
+                         { nameEn: "Neurology International", nameCn: "国际神经病学", abbr: "NEUROL INT", issn: "2035-8377", impactFactor: "2.012", hIndex: "21", citeScore: "2.3", jcrQuartile: "Q4", casCategory: "医学", casSubcategory: "神经病学", indexing: "ESCI", isOA: "Yes", discipline: "neurology" },
+                         { nameEn: "Frontiers in Behavioral Neuroscience", nameCn: "行为神经科学前沿", abbr: "FRONT BEHAV NEUROSCI", issn: "1662-5153", impactFactor: "3.099", hIndex: "97", citeScore: "4.7", jcrQuartile: "Q3", casCategory: "医学", casSubcategory: "神经科学", indexing: "SCIE", isOA: "Yes", discipline: "neuroscience" },
+                         { nameEn: "Behavioural Neurology", nameCn: "行为神经病学", abbr: "BEHAV NEUROL", issn: "0953-4180", impactFactor: "2.521", hIndex: "52", citeScore: "2.9", jcrQuartile: "Q3", casCategory: "医学", casSubcategory: "神经科学", indexing: "SCIE", isOA: "Yes", discipline: "neuroscience" },
+                         { nameEn: "Asian Journal of Psychiatry", nameCn: "亚洲精神病学杂志", abbr: "ASIAN J PSYCHIATR", issn: "1876-2018", impactFactor: "3.129", hIndex: "52", citeScore: "3.6", jcrQuartile: "Q3", casCategory: "医学", casSubcategory: "精神病学", indexing: "SCIE", isOA: "No", discipline: "psychiatry" },
+                         { nameEn: "Australasian Psychiatry", nameCn: "澳大拉西亚精神病学", abbr: "AUSTRALAS PSYCHIATRY", issn: "1039-8562", impactFactor: "1.233", hIndex: "44", citeScore: "1.6", jcrQuartile: "Q4", casCategory: "医学", casSubcategory: "精神病学", indexing: "SSCI", isOA: "No", discipline: "psychiatry" }
                     ]
                 },
-                filteredData: {
-                    '1': [],
-                    '2': [],
-                    '3': [],
-                    '4': []
+                filteredData: { // Holds the currently filtered data for each zone
+                    '1': [], '2': [], '3': [], '4': []
                 },
-                
-                // 初始化
+                totalFilteredJournals: 0, // Total count across all zones
+
+                // Initialization function, called when the component loads
                 init() {
-                    // 初始化过滤数据
+                    // Apply initial filtering *before* initializing DataTables
                     this.filterJournals();
-                    
-                    // 在下一个渲染周期初始化数据表格
+
+                    // Wait for the next DOM update cycle to initialize DataTables
                     this.$nextTick(() => {
-                        this.tabs.forEach(tab => {
-                            this.initDataTable(tab.id);
+                        this.initializeAllDataTables();
+                    });
+
+                     // Watch for changes in activeTab to potentially re-init DataTable if needed
+                    this.$watch('activeTab', (newTabId) => {
+                        this.$nextTick(() => {
+                            // Ensure DataTable is initialized for the newly active tab
+                            if (!this.dataTables[newTabId] || this.dataTables[newTabId].destroyed) {
+                                this.initDataTable(newTabId);
+                            }
                         });
                     });
                 },
-                
-                // 初始化数据表格
-                initDataTable(zoneId) {
-                    const tableId = `zone-${zoneId}-table`;
-                    if (this.dataTables[zoneId]) {
-                        this.dataTables[zoneId].destroy();
-                    }
-                    
-                    this.dataTables[zoneId] = new simpleDatatables.DataTable(`#${tableId}`, {
-                        searchable: true,
-                        fixedHeight: false,
-                        perPage: 10,
-                        perPageSelect: [10, 20, 50, 100],
-                        labels: {
-                            placeholder: "搜索...",
-                            perPage: "每页显示 {select} 条",
-                            noRows: "未找到匹配的期刊",
-                            info: "显示第 {start} 至 {end} 条，共 {rows} 条"
-                        }
+
+                // Initialize or re-initialize DataTables for all visible tabs
+                initializeAllDataTables() {
+                    this.tabs.forEach(tab => {
+                        // Check if the tab is currently potentially visible or will be soon
+                        // This optimization might be needed if there were many tabs
+                        // For now, initialize all
+                        this.initDataTable(tab.id);
                     });
                 },
-                
-                // 过滤期刊
+
+
+                // Initialize or re-initialize a DataTable for a specific zone
+                initDataTable(zoneId) {
+                    // Check if element exists and is not already initialized
+                    const tableElement = document.querySelector(`#zone-${zoneId}-table.simple-datatable`);
+                    if (!tableElement) {
+                        console.warn(`Table element not found for zone ${zoneId}`);
+                        return;
+                    }
+
+                    // Destroy existing DataTable instance if it exists and is not destroyed
+                    if (this.dataTables[zoneId] && !this.dataTables[zoneId].destroyed) {
+                        this.dataTables[zoneId].destroy();
+                    }
+
+                     // Ensure data is present before initializing
+                    if (this.filteredData[zoneId].length > 0) {
+                        try {
+                            this.dataTables[zoneId] = new simpleDatatables.DataTable(tableElement, {
+                                searchable: false, // Disable internal search, use Alpine's search
+                                fixedHeight: false, // Adjust height automatically
+                                perPage: 10, // Default items per page
+                                perPageSelect: [10, 20, 50, 100, -1], // Options for items per page, -1 for "All"
+                                labels: { // Customize labels (translate to Chinese)
+                                    placeholder: "搜索...", // Not used due to searchable: false
+                                    perPage: "每页显示 {select} 条",
+                                    noRows: "未找到匹配的期刊",
+                                    info: "显示第 {start} 至 {end} 条，共 {rows} 条",
+                                    noResults: "未找到匹配 \"{search}\" 的结果", // Message when internal search finds nothing
+                                },
+                                layout: {
+                                    top: "{select}{search}", // Keep select dropdown, remove search input
+                                    bottom: "{info}{pager}"
+                                }
+                            });
+                        } catch (e) {
+                             console.error(`Error initializing DataTable for zone ${zoneId}:`, e);
+                        }
+                    } else {
+                         // If no data, don't initialize DataTable, maybe show a message directly in HTML
+                         console.log(`No data for zone ${zoneId}, DataTable not initialized.`);
+                    }
+                },
+
+                // Filter journal data based on search term and dropdown selections
                 filterJournals() {
-                    const term = this.searchTerm.toLowerCase();
-                    
+                    const term = this.searchTerm.toLowerCase().trim(); // Lowercase and trim search term
+                    let totalCount = 0;
+
                     this.tabs.forEach(tab => {
-                        this.filteredData[tab.id] = this.journalData[tab.id].filter(journal => {
-                            // 学科过滤
-                            if (this.disciplineFilter !== 'all' && journal.discipline !== this.disciplineFilter) {
-                                return false;
-                            }
-                            
-                            // 收录过滤
-                            if (this.indexFilter !== 'all' && !journal.indexing.includes(this.indexFilter)) {
-                                return false;
-                            }
-                            
-                            // 关键词过滤
-                            if (term === '') {
-                                return true;
-                            }
-                            
-                            return (
+                        const originalData = this.journalData[tab.id] || []; // Ensure original data exists
+
+                        this.filteredData[tab.id] = originalData.filter(journal => {
+                            // Discipline filter logic
+                            const disciplineMatch = this.disciplineFilter === 'all' || journal.discipline === this.disciplineFilter;
+
+                            // Indexing filter logic
+                            const indexMatch = this.indexFilter === 'all' || (journal.indexing && journal.indexing.includes(this.indexFilter));
+
+                            // Search term filter logic
+                            const termMatch = term === '' || (
                                 (journal.nameEn && journal.nameEn.toLowerCase().includes(term)) ||
                                 (journal.nameCn && journal.nameCn.toLowerCase().includes(term)) ||
                                 (journal.abbr && journal.abbr.toLowerCase().includes(term)) ||
                                 (journal.issn && journal.issn.toLowerCase().includes(term))
                             );
+
+                            return disciplineMatch && indexMatch && termMatch;
                         });
+                        totalCount += this.filteredData[tab.id].length; // Add count for this zone
                     });
-                    
-                    // 更新数据表格
+
+                    this.totalFilteredJournals = totalCount; // Update total count
+
+                    // IMPORTANT: Let Alpine handle DOM updates based on filteredData.
+                    // Re-initialize DataTables *after* Alpine has updated the DOM.
                     this.$nextTick(() => {
-                        this.tabs.forEach(tab => {
-                            if (this.dataTables[tab.id]) {
-                                this.dataTables[tab.id].destroy();
-                                this.initDataTable(tab.id);
-                            }
-                        });
+                       this.tabs.forEach(tab => {
+                           // Only re-initialize if the table exists for this tab
+                           if (document.querySelector(`#zone-${tab.id}-table.simple-datatable`)) {
+                               this.initDataTable(tab.id);
+                           }
+                       });
                     });
                 },
-                
-                // 导出CSV
-                exportToCSV() {
-                    // 创建工作簿
+
+                // Export filtered data to an Excel (XLSX) file
+                exportToXLSX() {
+                    // Create a new workbook
                     const wb = XLSX.utils.book_new();
-                    
-                    // 处理每个区的数据
+                    let dataToExport = [];
+                     const header = ['分区', '期刊全称（英文）', '期刊全称（中文）', '期刊缩写', 'ISSN', '影响因子', 'h指数', 'CiteScore', 'JCR分区', '中科院大类', '中科院小类', '收录情况', '是否OA', '学科'];
+
+                    // Combine data from all filtered zones
                     this.tabs.forEach(tab => {
-                        // 创建worksheet
-                        const data = [
-                            ['期刊全称（英文）', '期刊全称（中文）', '期刊缩写', 'ISSN', '影响因子', 'h指数', 'CiteScore', 'JCR分区', '中科院大类', '中科院小类', '收录情况', '是否OA']
-                        ];
-                        
-                        // 添加数据行
                         this.filteredData[tab.id].forEach(journal => {
-                            data.push([
-                                journal.nameEn,
+                            dataToExport.push([
+                                tab.name, // Add Zone name as the first column
+                                journal.nameEn || '-',
                                 journal.nameCn || '-',
                                 journal.abbr || '-',
-                                journal.issn,
+                                journal.issn || '-',
                                 journal.impactFactor || '-',
                                 journal.hIndex || '-',
                                 journal.citeScore || '-',
@@ -1031,35 +508,52 @@
                                 journal.casCategory || '-',
                                 journal.casSubcategory || '-',
                                 journal.indexing || '-',
-                                journal.isOA
+                                journal.isOA || '-',
+                                this.getDisciplineName(journal.discipline) || '-' // Add discipline name
                             ]);
                         });
-                        
-                        // 创建工作表
-                        const ws = XLSX.utils.aoa_to_sheet(data);
-                        
-                        // 将工作表添加到工作簿
-                        XLSX.utils.book_append_sheet(wb, ws, `${tab.name}期刊`);
                     });
-                    
-                    // 导出工作簿
-                    XLSX.writeFile(wb, '2025年神经科学精神病学期刊分区表.xlsx');
+
+                     // Check if there is data to export
+                    if (dataToExport.length === 0) {
+                        alert("没有可导出的数据。请调整筛选条件。"); // Use a more user-friendly notification if possible
+                        return;
+                    }
+
+                    // Add header row
+                    const wsData = [header, ...dataToExport];
+
+                    // Create a worksheet from the combined data array
+                    const ws = XLSX.utils.aoa_to_sheet(wsData);
+
+                     // Auto-adjust column widths (basic estimation)
+                    const colWidths = header.map((_, i) => ({
+                        wch: wsData.reduce((max, row) => Math.max(max, String(row[i] || '').length), 10) // Calculate max width, min 10
+                    }));
+                    ws['!cols'] = colWidths;
+
+
+                    // Append the worksheet to the workbook
+                    XLSX.utils.book_append_sheet(wb, ws, '期刊分区数据');
+
+                    // Trigger the download of the XLSX file
+                    XLSX.writeFile(wb, '2025年神经科学精神病学期刊分区表_筛选结果.xlsx');
                 },
-                
-                // 获取指定分区的期刊数量
+
+                // Get the count of journals in a specific zone (based on filtered data)
                 getZoneJournalCount(zoneId) {
-                    return this.filteredData[zoneId].length;
+                    return this.filteredData[zoneId] ? this.filteredData[zoneId].length : 0;
                 },
-                
-                // 获取学科名称
+
+                // Get the display name for a discipline code
                 getDisciplineName(disciplineCode) {
                     const disciplines = {
                         'neuroscience': '神经科学',
                         'psychiatry': '精神病学',
-                        'neurology': '神经病学'
+                        'neurology': '神经病学',
+                        'all': '全部' // Added for display consistency
                     };
-                    
-                    return disciplines[disciplineCode] || disciplineCode;
+                    return disciplines[disciplineCode] || disciplineCode; // Return code if name not found
                 }
             };
         }
