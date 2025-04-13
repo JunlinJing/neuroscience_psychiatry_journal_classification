@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>2025年中科院神经科学/精神病学期刊分区表</title>
+    <title>2025年神经科学/精神病学期刊分区表</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.0.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.10.5/dist/cdn.min.js" defer></script>
@@ -81,9 +81,94 @@
 <body>
     <div class="container mx-auto px-4 py-8" x-data="journalApp()">
         <header class="mb-8 text-center">
-            <h1 class="text-3xl font-bold text-gray-800 mb-2">2025年中科院神经科学/精神病学期刊分区表</h1>
+            <h1 class="text-3xl font-bold text-gray-800 mb-2">2025年神经科学/精神病学期刊分区表</h1>
             <p class="text-gray-600 max-w-3xl mx-auto">基于2025年中国科学院文献情报中心发布的最新期刊分区数据，包含神经科学、精神病学及相关领域的期刊分类信息。</p>
         </header>
+        
+        <!-- 导入数据模态框 -->
+        <div x-show="showImportModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+            <div @click.outside="showImportModal = false" class="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-xl font-semibold text-gray-800">导入期刊数据</h3>
+                    <button @click="showImportModal = false" class="text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <div class="mb-4">
+                    <p class="text-gray-600 mb-2">您可以导入Excel或CSV格式的期刊数据。文件应包含以下列：</p>
+                    <ul class="text-sm text-gray-600 list-disc pl-5 mb-3">
+                        <li>期刊全称（英文）</li>
+                        <li>期刊全称（中文）</li>
+                        <li>期刊缩写</li>
+                        <li>ISSN</li>
+                        <li>影响因子</li>
+                        <li>分区信息（1-4）</li>
+                        <li>学科分类</li>
+                    </ul>
+                </div>
+                
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-medium mb-2">选择文件格式：</label>
+                    <div class="flex space-x-4">
+                        <label class="inline-flex items-center">
+                            <input type="radio" x-model="importFormat" value="xlsx" class="form-radio text-blue-600">
+                            <span class="ml-2 text-gray-700">Excel (XLSX)</span>
+                        </label>
+                        <label class="inline-flex items-center">
+                            <input type="radio" x-model="importFormat" value="csv" class="form-radio text-blue-600">
+                            <span class="ml-2 text-gray-700">CSV</span>
+                        </label>
+                        <label class="inline-flex items-center">
+                            <input type="radio" x-model="importFormat" value="json" class="form-radio text-blue-600">
+                            <span class="ml-2 text-gray-700">JSON</span>
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-medium mb-2">选择文件：</label>
+                    <div class="relative border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:bg-gray-50 transition-colors">
+                        <input 
+                            type="file" 
+                            id="fileInput" 
+                            @change="handleFileSelect" 
+                            class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                            :accept="importFormat === 'xlsx' ? '.xlsx,.xls' : importFormat === 'csv' ? '.csv' : '.json'"
+                        >
+                        <div class="space-y-1 text-center">
+                            <i class="fas fa-file-upload text-gray-400 text-3xl"></i>
+                            <div class="text-sm text-gray-600">
+                                <span>点击或拖拽文件到此处</span>
+                            </div>
+                            <p class="text-xs text-gray-500" x-text="selectedFileName || '支持的格式: ' + (importFormat === 'xlsx' ? 'Excel文件' : importFormat === 'csv' ? 'CSV文件' : 'JSON文件')"></p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex justify-between items-center pt-3">
+                    <button 
+                        @click="showImportModal = false" 
+                        class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300"
+                    >
+                        取消
+                    </button>
+                    <button 
+                        @click="importData()" 
+                        :disabled="!selectedFile" 
+                        :class="{'opacity-50 cursor-not-allowed': !selectedFile}"
+                        class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                    >
+                        导入数据
+                    </button>
+                </div>
+                
+                <!-- 导入进度和结果提示 -->
+                <div x-show="importStatus" class="mt-4 p-3 rounded" :class="importStatus.type === 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'">
+                    <p x-text="importStatus.message"></p>
+                </div>
+            </div>
+        </div>
 
         <div class="bg-white rounded-lg shadow-md p-4 mb-8 no-print">
             <div class="flex flex-col md:flex-row justify-between items-center mb-4">
@@ -112,6 +197,9 @@
                             <option value="neuroscience">神经科学</option>
                             <option value="psychiatry">精神病学</option>
                             <option value="neurology">神经病学</option>
+                            <option value="psychology">心理学</option>
+                            <option value="pharmacology">药理学</option>
+                            <option value="biochemistry">生物化学</option>
                         </select>
                     </div>
 
@@ -126,13 +214,25 @@
                             <option value="SCI">SCI</option>
                             <option value="SCIE">SCIE</option>
                             <option value="SSCI">SSCI</option>
+                            <option value="ESCI">ESCI</option>
                         </select>
                     </div>
-
-                    <button
-                        @click="exportToXLSX()" class="px-3 py-1.5 bg-green-600 text-white rounded-md hover:bg-green-700 text-sm flex items-center"
-                    >
-                        <i class="fas fa-file-excel mr-1"></i> 导出XLSX </button>
+                    
+                    <div class="flex gap-2">
+                        <button
+                            @click="exportToXLSX()" class="px-3 py-1.5 bg-green-600 text-white rounded-md hover:bg-green-700 text-sm flex items-center"
+                        >
+                            <i class="fas fa-file-excel mr-1"></i> 导出XLSX
+                        </button>
+                        
+                        <div class="relative">
+                            <button
+                                @click="showImportModal = true" class="px-3 py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm flex items-center"
+                            >
+                                <i class="fas fa-file-import mr-1"></i> 导入数据
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -350,115 +450,58 @@
         // Alpine.js component definition
         function journalApp() {
             return {
-                activeTab: '1', // Default active tab is Zone 1
-                searchTerm: '', // Search input model
-                disciplineFilter: 'all', // Discipline filter model
-                indexFilter: 'all', // Indexing filter model
-                tabs: [ // Tab definitions
+                activeTab: '1',
+                searchTerm: '',
+                disciplineFilter: 'all',
+                indexFilter: 'all',
+                showImportModal: false,
+                importFormat: 'xlsx',
+                selectedFile: null,
+                selectedFileName: '',
+                importStatus: null,
+                currentPage: 1,
+                itemsPerPage: 10,
+                tabs: [
                     { id: '1', name: '一区' },
                     { id: '2', name: '二区' },
                     { id: '3', name: '三区' },
                     { id: '4', name: '四区' }
                 ],
-                dataTables: {}, // Object to hold DataTable instances
-                currentPage: 1, // 当前页码
-                itemsPerPage: 10, // 每页显示的条目数
-                // Sample journal data (should be loaded externally in a real app)
-                journalData: {
-                     '1': [ // Zone 1 Data
-                        { nameEn: "Nature Neuroscience", nameCn: "自然神经科学", abbr: "NAT NEUROSCI", issn: "1097-6256", impactFactor: "24.884", hIndex: "401", citeScore: "26.9", jcrQuartile: "Q1", casCategory: "医学", casSubcategory: "神经科学", indexing: "SCI", isOA: "No", discipline: "neuroscience" },
-                        { nameEn: "Neuron", nameCn: "神经元", abbr: "NEURON", issn: "0896-6273", impactFactor: "18.882", hIndex: "479", citeScore: "19.5", jcrQuartile: "Q1", casCategory: "医学", casSubcategory: "神经科学", indexing: "SCI", isOA: "No", discipline: "neuroscience" },
-                        { nameEn: "Molecular Psychiatry", nameCn: "分子精神病学", abbr: "MOL PSYCHIATR", issn: "1359-4184", impactFactor: "15.992", hIndex: "213", citeScore: "17.3", jcrQuartile: "Q1", casCategory: "医学", casSubcategory: "精神病学", indexing: "SCI", isOA: "No", discipline: "psychiatry" },
-                        { nameEn: "Biological Psychiatry", nameCn: "生物精神病学", abbr: "BIOL PSYCHIAT", issn: "0006-3223", impactFactor: "13.382", hIndex: "290", citeScore: "18.8", jcrQuartile: "Q1", casCategory: "医学", casSubcategory: "精神病学", indexing: "SCIE", isOA: "No", discipline: "psychiatry" },
-                        { nameEn: "JAMA Psychiatry", nameCn: "美国医学会精神病学", abbr: "JAMA PSYCHIATRY", issn: "2168-622X", impactFactor: "21.596", hIndex: "172", citeScore: "23.4", jcrQuartile: "Q1", casCategory: "医学", casSubcategory: "精神病学", indexing: "SCI", isOA: "No", discipline: "psychiatry" },
-                        { nameEn: "Brain", nameCn: "脑", abbr: "BRAIN", issn: "0006-8950", impactFactor: "13.501", hIndex: "313", citeScore: "15.9", jcrQuartile: "Q1", casCategory: "医学", casSubcategory: "神经科学", indexing: "SCI", isOA: "No", discipline: "neuroscience" },
-                        { nameEn: "Annals of Neurology", nameCn: "神经病学年鉴", abbr: "ANN NEUROL", issn: "0364-5134", impactFactor: "10.422", hIndex: "246", citeScore: "13.1", jcrQuartile: "Q1", casCategory: "医学", casSubcategory: "神经病学", indexing: "SCI", isOA: "No", discipline: "neurology" },
-                        { nameEn: "World Psychiatry", nameCn: "世界精神病学", abbr: "WORLD PSYCHIATRY", issn: "1723-8617", impactFactor: "79.683", hIndex: "121", citeScore: "65.3", jcrQuartile: "Q1", casCategory: "医学", casSubcategory: "精神病学", indexing: "SCI", isOA: "Yes", discipline: "psychiatry" },
-                        { nameEn: "The Lancet Psychiatry", nameCn: "柳叶刀精神病学", abbr: "LANCET PSYCHIATRY", issn: "2215-0366", impactFactor: "27.083", hIndex: "112", citeScore: "24.7", jcrQuartile: "Q1", casCategory: "医学", casSubcategory: "精神病学", indexing: "SCI", isOA: "No", discipline: "psychiatry" },
-                        { nameEn: "Trends in Neurosciences", nameCn: "神经科学趋势", abbr: "TRENDS NEUROSCI", issn: "0166-2236", impactFactor: "17.755", hIndex: "275", citeScore: "17.2", jcrQuartile: "Q1", casCategory: "医学", casSubcategory: "神经科学", indexing: "SCI", isOA: "No", discipline: "neuroscience" }
-                    ],
-                    '2': [ // Zone 2 Data
-                         { nameEn: "Journal of Neuroscience", nameCn: "神经科学杂志", abbr: "J NEUROSCI", issn: "0270-6474", impactFactor: "6.673", hIndex: "409", citeScore: "9.1", jcrQuartile: "Q1", casCategory: "医学", casSubcategory: "神经科学", indexing: "SCI", isOA: "No", discipline: "neuroscience" },
-                         { nameEn: "Neuropsychopharmacology", nameCn: "神经精神药理学", abbr: "NEUROPSYCHOPHARMACOL", issn: "0893-133X", impactFactor: "8.294", hIndex: "235", citeScore: "10.8", jcrQuartile: "Q1", casCategory: "医学", casSubcategory: "精神病学", indexing: "SCI", isOA: "No", discipline: "psychiatry" },
-                         { nameEn: "European Neuropsychopharmacology", nameCn: "欧洲神经精神药理学", abbr: "EUR NEUROPSYCHOPHARM", issn: "0924-977X", impactFactor: "6.292", hIndex: "139", citeScore: "6.7", jcrQuartile: "Q1", casCategory: "医学", casSubcategory: "精神病学", indexing: "SCI", isOA: "No", discipline: "psychiatry" },
-                         { nameEn: "Brain Stimulation", nameCn: "大脑刺激", abbr: "BRAIN STIMUL", issn: "1935-861X", impactFactor: "8.955", hIndex: "115", citeScore: "12.7", jcrQuartile: "Q1", casCategory: "医学", casSubcategory: "神经科学", indexing: "SCI", isOA: "No", discipline: "neuroscience" },
-                         { nameEn: "Neurology", nameCn: "神经病学", abbr: "NEUROLOGY", issn: "0028-3878", impactFactor: "9.91", hIndex: "335", citeScore: "11.6", jcrQuartile: "Q1", casCategory: "医学", casSubcategory: "神经病学", indexing: "SCI", isOA: "No", discipline: "neurology" },
-                         { nameEn: "Brain Pathology", nameCn: "脑病理学", abbr: "BRAIN PATHOL", issn: "1015-6305", impactFactor: "7.528", hIndex: "118", citeScore: "8.3", jcrQuartile: "Q1", casCategory: "医学", casSubcategory: "神经科学", indexing: "SCI", isOA: "No", discipline: "neuroscience" },
-                         { nameEn: "Journal of Psychiatric Research", nameCn: "精神病学研究杂志", abbr: "J PSYCHIATR RES", issn: "0022-3956", impactFactor: "5.168", hIndex: "146", citeScore: "7.3", jcrQuartile: "Q1", casCategory: "医学", casSubcategory: "精神病学", indexing: "SCI", isOA: "No", discipline: "psychiatry" },
-                         { nameEn: "Schizophrenia Bulletin", nameCn: "精神分裂症公报", abbr: "SCHIZOPHR BULL", issn: "0586-7614", impactFactor: "9.306", hIndex: "211", citeScore: "11.5", jcrQuartile: "Q1", casCategory: "医学", casSubcategory: "精神病学", indexing: "SCI", isOA: "No", discipline: "psychiatry" },
-                         { nameEn: "Cortex", nameCn: "大脑皮层", abbr: "CORTEX", issn: "0010-9452", impactFactor: "5.217", hIndex: "148", citeScore: "6.5", jcrQuartile: "Q1", casCategory: "医学", casSubcategory: "神经科学", indexing: "SCI", isOA: "No", discipline: "neuroscience" },
-                         { nameEn: "Developmental Cognitive Neuroscience", nameCn: "发育认知神经科学", abbr: "DEV COGN NEUROSCI", issn: "1878-9293", impactFactor: "6.104", hIndex: "95", citeScore: "8.9", jcrQuartile: "Q1", casCategory: "医学", casSubcategory: "神经科学", indexing: "SCI", isOA: "Yes", discipline: "neuroscience" }
-                    ],
-                    '3': [ // Zone 3 Data
-                         { nameEn: "ACS Chemical Neuroscience", nameCn: "ACS化学神经科学", abbr: "ACS CHEM NEUROSCI", issn: "1948-7193", impactFactor: "4.418", hIndex: "87", citeScore: "6.8", jcrQuartile: "Q2", casCategory: "医学", casSubcategory: "神经科学", indexing: "SCIE", isOA: "No", discipline: "neuroscience" },
-                         { nameEn: "International Journal of Neuropsychopharmacology", nameCn: "国际神经精神药理学杂志", abbr: "INT J NEUROPSYCHOPH", issn: "1461-1457", impactFactor: "4.207", hIndex: "102", citeScore: "5.7", jcrQuartile: "Q2", casCategory: "医学", casSubcategory: "精神病学", indexing: "SCI", isOA: "Yes", discipline: "psychiatry" },
-                         { nameEn: "Neuropsychology Review", nameCn: "神经心理学评论", abbr: "NEUROPSYCHOL REV", issn: "1040-7308", impactFactor: "5.358", hIndex: "100", citeScore: "7.6", jcrQuartile: "Q2", casCategory: "医学", casSubcategory: "神经科学", indexing: "SSCI", isOA: "No", discipline: "neuroscience" },
-                         { nameEn: "Journal of Attention Disorders", nameCn: "注意力障碍杂志", abbr: "J ATTEN DISORD", issn: "1087-0547", impactFactor: "4.365", hIndex: "94", citeScore: "6.1", jcrQuartile: "Q2", casCategory: "医学", casSubcategory: "精神病学", indexing: "SSCI", isOA: "No", discipline: "psychiatry" },
-                         { nameEn: "Journal of Neuropsychiatry and Clinical Neurosciences", nameCn: "神经精神病学与临床神经科学杂志", abbr: "J NEUROPSYCH CLIN N", issn: "0895-0172", impactFactor: "3.704", hIndex: "89", citeScore: "4.1", jcrQuartile: "Q2", casCategory: "医学", casSubcategory: "神经病学", indexing: "SCI", isOA: "No", discipline: "neurology" },
-                         { nameEn: "CNS Neuroscience & Therapeutics", nameCn: "中枢神经系统神经科学与治疗", abbr: "CNS NEUROSCI THER", issn: "1755-5930", impactFactor: "4.107", hIndex: "62", citeScore: "5.8", jcrQuartile: "Q2", casCategory: "医学", casSubcategory: "神经科学", indexing: "SCI", isOA: "Yes", discipline: "neuroscience" },
-                         { nameEn: "Psychiatry Research", nameCn: "精神病学研究", abbr: "PSYCHIAT RES", issn: "0165-1781", impactFactor: "3.222", hIndex: "144", citeScore: "3.9", jcrQuartile: "Q2", casCategory: "医学", casSubcategory: "精神病学", indexing: "SCI", isOA: "No", discipline: "psychiatry" },
-                         { nameEn: "Journal of Neurology", nameCn: "神经病学杂志", abbr: "J NEUROL", issn: "0340-5354", impactFactor: "4.849", hIndex: "154", citeScore: "5.1", jcrQuartile: "Q1", casCategory: "医学", casSubcategory: "神经病学", indexing: "SCI", isOA: "No", discipline: "neurology" },
-                         { nameEn: "Journal of Neurodevelopmental Disorders", nameCn: "神经发育障碍杂志", abbr: "J NEURODEV DISORD", issn: "1866-1947", impactFactor: "3.785", hIndex: "55", citeScore: "5.3", jcrQuartile: "Q2", casCategory: "医学", casSubcategory: "神经科学", indexing: "SCI", isOA: "Yes", discipline: "neuroscience" },
-                         { nameEn: "Molecular Autism", nameCn: "分子自闭症", abbr: "MOL AUTISM", issn: "2040-2392", impactFactor: "5.712", hIndex: "71", citeScore: "7.9", jcrQuartile: "Q1", casCategory: "医学", casSubcategory: "精神病学", indexing: "SCI", isOA: "Yes", discipline: "psychiatry" }
-                    ],
-                    '4': [ // Zone 4 Data
-                         { nameEn: "Neuroscience Letters", nameCn: "神经科学快报", abbr: "NEUROSCI LETT", issn: "0304-3940", impactFactor: "3.046", hIndex: "155", citeScore: "3.5", jcrQuartile: "Q3", casCategory: "医学", casSubcategory: "神经科学", indexing: "SCIE", isOA: "No", discipline: "neuroscience" },
-                         { nameEn: "Neuropsychiatric Disease and Treatment", nameCn: "神经精神疾病及治疗", abbr: "NEUROPSYCH DIS TREAT", issn: "1176-6328", impactFactor: "2.808", hIndex: "78", citeScore: "3.4", jcrQuartile: "Q3", casCategory: "医学", casSubcategory: "精神病学", indexing: "SCIE", isOA: "Yes", discipline: "psychiatry" },
-                         { nameEn: "Neurological Sciences", nameCn: "神经学科学", abbr: "NEUROL SCI", issn: "1590-1874", impactFactor: "3.307", hIndex: "84", citeScore: "3.8", jcrQuartile: "Q3", casCategory: "医学", casSubcategory: "神经病学", indexing: "SCI", isOA: "No", discipline: "neurology" },
-                         { nameEn: "General Psychiatry", nameCn: "普通精神病学", abbr: "GEN PSYCHIATR", issn: "2517-729X", impactFactor: "3.242", hIndex: "26", citeScore: "4.2", jcrQuartile: "Q3", casCategory: "医学", casSubcategory: "精神病学", indexing: "SCIE", isOA: "Yes", discipline: "psychiatry" },
-                         { nameEn: "Neuropsychiatry", nameCn: "神经精神病学", abbr: "NEUROPSYCHIATRY", issn: "1758-2008", impactFactor: "2.154", hIndex: "34", citeScore: "2.7", jcrQuartile: "Q3", casCategory: "医学", casSubcategory: "精神病学", indexing: "ESCI", isOA: "No", discipline: "psychiatry" },
-                         { nameEn: "Neurology International", nameCn: "国际神经病学", abbr: "NEUROL INT", issn: "2035-8377", impactFactor: "2.012", hIndex: "21", citeScore: "2.3", jcrQuartile: "Q4", casCategory: "医学", casSubcategory: "神经病学", indexing: "ESCI", isOA: "Yes", discipline: "neurology" },
-                         { nameEn: "Frontiers in Behavioral Neuroscience", nameCn: "行为神经科学前沿", abbr: "FRONT BEHAV NEUROSCI", issn: "1662-5153", impactFactor: "3.099", hIndex: "97", citeScore: "4.7", jcrQuartile: "Q3", casCategory: "医学", casSubcategory: "神经科学", indexing: "SCIE", isOA: "Yes", discipline: "neuroscience" },
-                         { nameEn: "Behavioural Neurology", nameCn: "行为神经病学", abbr: "BEHAV NEUROL", issn: "0953-4180", impactFactor: "2.521", hIndex: "52", citeScore: "2.9", jcrQuartile: "Q3", casCategory: "医学", casSubcategory: "神经科学", indexing: "SCIE", isOA: "Yes", discipline: "neuroscience" },
-                         { nameEn: "Asian Journal of Psychiatry", nameCn: "亚洲精神病学杂志", abbr: "ASIAN J PSYCHIATR", issn: "1876-2018", impactFactor: "3.129", hIndex: "52", citeScore: "3.6", jcrQuartile: "Q3", casCategory: "医学", casSubcategory: "精神病学", indexing: "SCIE", isOA: "No", discipline: "psychiatry" },
-                         { nameEn: "Australasian Psychiatry", nameCn: "澳大拉西亚精神病学", abbr: "AUSTRALAS PSYCHIATRY", issn: "1039-8562", impactFactor: "1.233", hIndex: "44", citeScore: "1.6", jcrQuartile: "Q4", casCategory: "医学", casSubcategory: "精神病学", indexing: "SSCI", isOA: "No", discipline: "psychiatry" }
-                    ]
-                },
-                filteredData: { // Holds the currently filtered data for each zone
-                    '1': [], '2': [], '3': [], '4': []
-                },
-                totalFilteredJournals: 0, // Total count across all zones
+                journalData: { '1': [], '2': [], '3': [], '4': [] },
+                filteredData: { '1': [], '2': [], '3': [], '4': [] },
+                totalFilteredJournals: 0,
 
-                // Initialization function, called when the component loads
                 init() {
                     console.log('Initializing journal app...');
-                    // 确保journalData中有数据
-                    console.log('Journal data:', this.journalData);
-                    
-                    // Initialize filteredData with all data first
-                    this.tabs.forEach(tab => {
-                        if (this.journalData[tab.id] && this.journalData[tab.id].length > 0) {
-                            this.filteredData[tab.id] = [...this.journalData[tab.id]];
-                            console.log(`Loaded ${this.filteredData[tab.id].length} journals for zone ${tab.id}`);
-                        } else {
-                            console.warn(`No journal data found for zone ${tab.id}`);
-                            this.filteredData[tab.id] = [];
-                        }
-                    });
-                    
-                    // Calculate total count
-                    this.totalFilteredJournals = Object.values(this.filteredData)
-                        .reduce((sum, arr) => sum + arr.length, 0);
-                    console.log(`Total journals: ${this.totalFilteredJournals}`);
-                    
-                    // Wait for the DOM to be fully rendered before initializing DataTables
-                    setTimeout(() => {
-                        this.initializeAllDataTables();
-                    }, 100);
+                    this.loadJournalDataFromLocalJson();
+                },
 
-                    // Watch for changes in activeTab to re-init DataTable if needed
-                    this.$watch('activeTab', (newTabId) => {
-                        // Small delay to ensure the tab content is visible
-                        setTimeout(() => {
-                            const tableElement = document.querySelector(`#zone-${newTabId}-table`);
-                            if (tableElement && tableElement.offsetParent !== null) {
-                                this.initDataTable(newTabId);
+                loadJournalDataFromLocalJson() {
+                    fetch('./data/journals.json')
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error('Unable to access local journal data file');
                             }
-                        }, 50);
-                    });
-                    
-                    // 初始调用一次filterJournals确保数据已经过滤
-                    this.filterJournals();
+                            return response.json();
+                        })
+                        .then(data => {
+                            if (data && data.zones) {
+                                // 将新的数据结构转换为应用需要的格式
+                                Object.keys(data.zones).forEach(zoneId => {
+                                    this.journalData[zoneId] = data.zones[zoneId].journals || [];
+                                    this.filteredData[zoneId] = [...this.journalData[zoneId]];
+                                });
+                                
+                                this.totalFilteredJournals = Object.values(this.journalData)
+                                    .reduce((sum, arr) => sum + arr.length, 0);
+                                    
+                                this.filterJournals();
+                                console.log(`Loaded journal data from JSON: ${this.totalFilteredJournals} total journals`);
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Failed to load JSON data:', error);
+                        });
                 },
 
                 // 简化表格初始化，不再使用DataTables库
@@ -550,6 +593,274 @@
                     });
                 },
 
+                // 处理文件选择事件
+                handleFileSelect(event) {
+                    const file = event.target.files[0];
+                    if (!file) return;
+                    
+                    this.selectedFile = file;
+                    this.selectedFileName = file.name;
+                    this.importStatus = null; // 重置导入状态
+                },
+                
+                // 导入数据处理函数
+                importData() {
+                    if (!this.selectedFile) {
+                        this.importStatus = {
+                            type: 'error',
+                            message: '请先选择文件'
+                        };
+                        return;
+                    }
+                    
+                    // 显示加载状态
+                    this.importStatus = {
+                        type: 'info',
+                        message: '正在处理数据，请稍候...'
+                    };
+                    
+                    const reader = new FileReader();
+                    
+                    reader.onload = (e) => {
+                        try {
+                            let importedData = [];
+                            
+                            // 根据文件格式解析数据
+                            if (this.importFormat === 'xlsx' || this.importFormat === 'xls') {
+                                const data = new Uint8Array(e.target.result);
+                                const workbook = XLSX.read(data, {type: 'array'});
+                                const firstSheetName = workbook.SheetNames[0];
+                                const worksheet = workbook.Sheets[firstSheetName];
+                                const jsonData = XLSX.utils.sheet_to_json(worksheet, {header: 1});
+                                
+                                // 处理Excel数据
+                                importedData = this.processImportedData(jsonData);
+                            } else if (this.importFormat === 'csv') {
+                                const csvText = e.target.result;
+                                // 使用XLSX库解析CSV
+                                const workbook = XLSX.read(csvText, {type: 'string'});
+                                const firstSheetName = workbook.SheetNames[0];
+                                const worksheet = workbook.Sheets[firstSheetName];
+                                const jsonData = XLSX.utils.sheet_to_json(worksheet, {header: 1});
+                                
+                                // 处理CSV数据
+                                importedData = this.processImportedData(jsonData);
+                            } else if (this.importFormat === 'json') {
+                                const jsonText = e.target.result;
+                                const jsonData = JSON.parse(jsonText);
+                                
+                                // 处理JSON数据
+                                if (Array.isArray(jsonData)) {
+                                    importedData = jsonData;
+                                } else if (jsonData.journals && Array.isArray(jsonData.journals)) {
+                                    importedData = jsonData.journals;
+                                } else {
+                                    throw new Error('JSON格式不正确，无法识别期刊数据');
+                                }
+                            }
+                            
+                            // 将导入的数据分配到各个分区
+                            this.distributeImportedData(importedData);
+                            
+                            // 更新导入状态
+                            this.importStatus = {
+                                type: 'success',
+                                message: `成功导入 ${importedData.length} 条期刊数据`
+                            };
+                            
+                            // 重新过滤数据
+                            this.filterJournals();
+                            
+                            // 3秒后关闭模态框
+                            setTimeout(() => {
+                                this.showImportModal = false;
+                                this.importStatus = null;
+                                this.selectedFile = null;
+                                this.selectedFileName = '';
+                            }, 3000);
+                            
+                        } catch (error) {
+                            console.error('导入数据错误:', error);
+                            this.importStatus = {
+                                type: 'error',
+                                message: `导入失败: ${error.message}`
+                            };
+                        }
+                    };
+                    
+                    reader.onerror = () => {
+                        this.importStatus = {
+                            type: 'error',
+                            message: '读取文件时发生错误'
+                        };
+                    };
+                    
+                    // 根据文件格式读取文件
+                    if (this.importFormat === 'xlsx' || this.importFormat === 'xls') {
+                        reader.readAsArrayBuffer(this.selectedFile);
+                    } else {
+                        reader.readAsText(this.selectedFile);
+                    }
+                },
+                
+                // 处理导入的数据，将其转换为标准格式
+                processImportedData(data) {
+                    // 如果是表格数据（有表头）
+                    if (Array.isArray(data) && data.length > 1) {
+                        const headers = data[0];
+                        const journals = [];
+                        
+                        // 从第二行开始处理数据
+                        for (let i = 1; i < data.length; i++) {
+                            const row = data[i];
+                            if (row.length === 0) continue; // 跳过空行
+                            
+                            // 创建期刊对象
+                            const journal = {};
+                            
+                            // 尝试匹配列名
+                            headers.forEach((header, index) => {
+                                if (row[index] === undefined) return;
+                                
+                                const headerLower = String(header).toLowerCase();
+                                
+                                // 根据列名匹配字段
+                                if (headerLower.includes('英文') || headerLower.includes('name') || headerLower.includes('title')) {
+                                    journal.nameEn = row[index];
+                                } else if (headerLower.includes('中文')) {
+                                    journal.nameCn = row[index];
+                                } else if (headerLower.includes('缩写') || headerLower.includes('abbr')) {
+                                    journal.abbr = row[index];
+                                } else if (headerLower.includes('issn')) {
+                                    journal.issn = row[index];
+                                } else if (headerLower.includes('影响因子') || headerLower.includes('impact')) {
+                                    journal.impactFactor = row[index];
+                                } else if (headerLower.includes('h') && headerLower.includes('index')) {
+                                    journal.hIndex = row[index];
+                                } else if (headerLower.includes('cite') || headerLower.includes('score')) {
+                                    journal.citeScore = row[index];
+                                } else if (headerLower.includes('jcr') || headerLower.includes('quartile') || headerLower.includes('q')) {
+                                    journal.jcrQuartile = row[index];
+                                } else if (headerLower.includes('大类') || headerLower.includes('category')) {
+                                    journal.casCategory = row[index];
+                                } else if (headerLower.includes('小类') || headerLower.includes('subcategory')) {
+                                    journal.casSubcategory = row[index];
+                                } else if (headerLower.includes('收录') || headerLower.includes('index')) {
+                                    journal.indexing = row[index];
+                                } else if (headerLower.includes('oa') || headerLower.includes('open')) {
+                                    journal.isOA = row[index];
+                                } else if (headerLower.includes('学科') || headerLower.includes('discipline')) {
+                                    // 处理学科分类
+                                    const disciplineValue = String(row[index]).toLowerCase();
+                                    if (disciplineValue.includes('神经') && disciplineValue.includes('科学')) {
+                                        journal.discipline = 'neuroscience';
+                                    } else if (disciplineValue.includes('精神') || disciplineValue.includes('psychiatry')) {
+                                        journal.discipline = 'psychiatry';
+                                    } else if (disciplineValue.includes('神经') && disciplineValue.includes('病学')) {
+                                        journal.discipline = 'neurology';
+                                    } else if (disciplineValue.includes('心理')) {
+                                        journal.discipline = 'psychology';
+                                    } else if (disciplineValue.includes('药理')) {
+                                        journal.discipline = 'pharmacology';
+                                    } else if (disciplineValue.includes('生物化学')) {
+                                        journal.discipline = 'biochemistry';
+                                    } else {
+                                        journal.discipline = 'other';
+                                    }
+                                } else if (headerLower.includes('分区') || headerLower.includes('zone')) {
+                                    // 记录分区信息，用于后续分配
+                                    journal.zone = row[index];
+                                }
+                            });
+                            
+                            // 确保必要字段存在
+                            if (journal.nameEn) {
+                                // 如果没有指定学科，根据期刊名称猜测
+                                if (!journal.discipline) {
+                                    const nameEn = journal.nameEn.toLowerCase();
+                                    if (nameEn.includes('neuro') || nameEn.includes('brain')) {
+                                        journal.discipline = 'neuroscience';
+                                    } else if (nameEn.includes('psych')) {
+                                        journal.discipline = 'psychiatry';
+                                    } else {
+                                        journal.discipline = 'other';
+                                    }
+                                }
+                                
+                                journals.push(journal);
+                            }
+                        }
+                        
+                        return journals;
+                    }
+                    
+                    return [];
+                },
+                
+                // 将导入的数据分配到各个分区
+                distributeImportedData(importedData) {
+                    if (!importedData || importedData.length === 0) return;
+                    
+                    importedData.forEach(journal => {
+                        // 根据 LetPub 的分区信息确定期刊分区
+                        let zoneId = journal.casZone || '4'; // 默认放入四区
+                        
+                        // 确保 journalData 中有对应的分区数组
+                        if (!this.journalData[zoneId]) {
+                            this.journalData[zoneId] = [];
+                        }
+                        
+                        // 检查期刊是否已存在
+                        const existingIndex = this.journalData[zoneId].findIndex(j => 
+                            j.issn === journal.issn || 
+                            (j.nameEn && journal.nameEn && j.nameEn.toLowerCase() === journal.nameEn.toLowerCase())
+                        );
+                        
+                        if (existingIndex >= 0) {
+                            // 更新现有期刊数据
+                            this.journalData[zoneId][existingIndex] = {
+                                ...this.journalData[zoneId][existingIndex],
+                                ...journal
+                            };
+                        } else {
+                            // 添加新期刊
+                            this.journalData[zoneId].push(journal);
+                        }
+                    });
+                    
+                    // 更新过滤后的数据
+                    this.tabs.forEach(tab => {
+                        this.filteredData[tab.id] = [...this.journalData[tab.id]];
+                    });
+                    
+                    // 更新总数
+                    this.totalFilteredJournals = Object.values(this.journalData)
+                        .reduce((sum, arr) => sum + arr.length, 0);
+                },
+                
+                // 从远程JSON文件加载期刊数据
+                loadJournalDataFromJson(url) {
+                    fetch(url)
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error('网络响应不正常');
+                            }
+                            return response.json();
+                        })
+                        .then(data => {
+                            if (data && data.journals && Array.isArray(data.journals)) {
+                                // 处理并分配数据
+                                this.distributeImportedData(data.journals);
+                                // 重新过滤数据
+                                this.filterJournals();
+                                console.log(`从JSON加载了 ${data.journals.length} 条期刊数据`);
+                            }
+                        })
+                        .catch(error => {
+                            console.error('加载JSON数据失败:', error);
+                        });
+                },
+                
                 // Export filtered data to an Excel (XLSX) file
                 exportToXLSX() {
                     // Create a new workbook
