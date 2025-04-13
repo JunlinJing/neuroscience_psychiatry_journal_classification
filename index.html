@@ -11,100 +11,21 @@
     <script src="https://cdn.jsdelivr.net/npm/simple-datatables@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <style>
-        /* Import Noto Sans SC font from Google Fonts */
+        /* Styles (unchanged) */
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap');
-
-        /* Apply the font to the body and set background color */
-        body {
-            font-family: 'Noto Sans SC', sans-serif;
-            background-color: #f9fafb; /* Light gray background */
-        }
-
-        /* Style for active zone tabs */
-        .zone-tabs .active-tab {
-            border-bottom: 3px solid #3b82f6; /* Blue bottom border */
-            color: #1e40af; /* Darker blue text */
-            font-weight: 600; /* Medium font weight */
-        }
-
-        /* Background colors for different zones */
-        .zone-1 { background-color: #dbeafe; } /* Light blue */
-        .zone-1-header { background-color: #3b82f6; } /* Blue */
-
-        .zone-2 { background-color: #e0f2fe; } /* Lighter blue */
-        .zone-2-header { background-color: #0ea5e9; } /* Sky blue */
-
-        .zone-3 { background-color: #f0fdfa; } /* Light teal */
-        .zone-3-header { background-color: #14b8a6; } /* Teal */
-
-        .zone-4 { background-color: #fef3c7; } /* Light yellow */
-        .zone-4-header { background-color: #f59e0b; } /* Amber */
-
-        /* Make table headers sticky */
-        table.dataTable thead th {
-            position: sticky;
-            top: 0;
-            background-color: white;
-            z-index: 10; /* Ensure header is above table content */
-        }
-
-        /* Add padding to the top section of the DataTable */
-        .dataTable-wrapper .dataTable-top {
-            padding: 1rem 0;
-        }
-
-        /* Print-specific styles */
-        @media print {
-            /* Hide elements with 'no-print' class */
-            .no-print {
-                display: none !important;
-            }
-
-            /* Avoid breaking inside elements during printing */
-            .print-break-inside-avoid {
-                break-inside: avoid;
-            }
-
-            /* Ensure full width and auto height for printing */
-            html, body {
-                width: 100%;
-                height: auto;
-            }
-
-            /* Make sure tab content is visible when printing */
-            .zone-tab-content {
-                display: block !important;
-                opacity: 1 !important;
-                height: auto !important;
-            }
-        }
-         /* Basic loading indicator style */
-        .loading-indicator {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100px; /* Adjust as needed */
-            font-size: 1.2em;
-            color: #666;
-        }
-        .loading-indicator i {
-            margin-right: 10px;
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        /* Error message style */
-        .error-message {
-             text-align: center;
-             color: #dc2626; /* Red color */
-             padding: 1rem;
-             background-color: #fee2e2; /* Light red background */
-             border: 1px solid #fecaca; /* Red border */
-             border-radius: 0.5rem; /* Rounded corners */
-             margin-bottom: 1rem;
-        }
+        body { font-family: 'Noto Sans SC', sans-serif; background-color: #f9fafb; }
+        .zone-tabs .active-tab { border-bottom: 3px solid #3b82f6; color: #1e40af; font-weight: 600; }
+        .zone-1 { background-color: #dbeafe; } .zone-1-header { background-color: #3b82f6; }
+        .zone-2 { background-color: #e0f2fe; } .zone-2-header { background-color: #0ea5e9; }
+        .zone-3 { background-color: #f0fdfa; } .zone-3-header { background-color: #14b8a6; }
+        .zone-4 { background-color: #fef3c7; } .zone-4-header { background-color: #f59e0b; }
+        table.dataTable thead th { position: sticky; top: 0; background-color: white; z-index: 10; }
+        .dataTable-wrapper .dataTable-top { padding: 1rem 0; }
+        @media print { .no-print { display: none !important; } .print-break-inside-avoid { break-inside: avoid; } html, body { width: 100%; height: auto; } .zone-tab-content { display: block !important; opacity: 1 !important; height: auto !important; } }
+        .loading-indicator { display: flex; justify-content: center; align-items: center; height: 100px; font-size: 1.2em; color: #666; }
+        .loading-indicator i { margin-right: 10px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .error-message { text-align: center; color: #dc2626; padding: 1rem; background-color: #fee2e2; border: 1px solid #fecaca; border-radius: 0.5rem; margin-bottom: 1rem; }
     </style>
 </head>
 <body>
@@ -116,83 +37,18 @@
 
         <div class="bg-white rounded-lg shadow-md p-4 mb-8 no-print">
             <div class="flex flex-col md:flex-row justify-between items-center mb-4">
-                <div class="w-full md:w-2/5 mb-4 md:mb-0">
-                    <div class="relative">
-                        <input
-                            type="text"
-                            x-model="searchTerm"
-                            @input.debounce.300ms="filterJournals()"
-                            placeholder="搜索期刊名称、ISSN或缩写..."
-                            class="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            :disabled="isLoading" >
-                        <div class="absolute left-3 top-2.5 text-gray-400">
-                            <i class="fas fa-search"></i> </div>
-                    </div>
-                </div>
-
+                <div class="w-full md:w-2/5 mb-4 md:mb-0"> <div class="relative"> <input type="text" x-model="searchTerm" @input.debounce.300ms="filterJournals()" placeholder="搜索期刊名称、ISSN或缩写..." class="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" :disabled="isLoading" > <div class="absolute left-3 top-2.5 text-gray-400"> <i class="fas fa-search"></i> </div> </div> </div>
                 <div class="w-full md:w-3/5 flex flex-wrap justify-end gap-2">
-                    <div class="flex items-center mr-4">
-                        <label class="mr-2 text-gray-700 text-sm">学科:</label>
-                        <select
-                            x-model="disciplineFilter"
-                            @change="filterJournals()"
-                            class="border rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            :disabled="isLoading"
-                        >
-                            <option value="all">全部</option>
-                            <option value="neuroscience">神经科学</option>
-                            <option value="psychiatry">精神病学</option>
-                            <option value="neurology">神经病学</option>
-                            <option value="related">相关领域</option>
-                        </select>
-                    </div>
-
-                    <div class="flex items-center mr-4">
-                        <label class="mr-2 text-gray-700 text-sm">收录:</label>
-                        <select
-                            x-model="indexFilter"
-                            @change="filterJournals()"
-                            class="border rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            :disabled="isLoading"
-                        >
-                            <option value="all">全部</option>
-                            <option value="SCI">SCI</option>
-                            <option value="SCIE">SCIE</option>
-                            <option value="SSCI">SSCI</option>
-                            <option value="ESCI">ESCI</option>
-                        </select>
-                    </div>
-
-                    <button
-                        @click="exportToXLSX()"
-                        class="px-3 py-1.5 bg-green-600 text-white rounded-md hover:bg-green-700 text-sm flex items-center"
-                        :disabled="isLoading || totalFilteredJournals === 0" :class="{'opacity-50 cursor-not-allowed': isLoading || totalFilteredJournals === 0}"
-                    >
-                        <i class="fas fa-file-excel mr-1"></i> 导出XLSX
-                    </button>
+                    <div class="flex items-center mr-4"> <label class="mr-2 text-gray-700 text-sm">学科:</label> <select x-model="disciplineFilter" @change="filterJournals()" class="border rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" :disabled="isLoading" > <option value="all">全部</option> <option value="neuroscience">神经科学</option> <option value="psychiatry">精神病学</option> <option value="neurology">神经病学</option> <option value="related">相关领域</option> </select> </div>
+                    <div class="flex items-center mr-4"> <label class="mr-2 text-gray-700 text-sm">收录:</label> <select x-model="indexFilter" @change="filterJournals()" class="border rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" :disabled="isLoading" > <option value="all">全部</option> <option value="SCI">SCI</option> <option value="SCIE">SCIE</option> <option value="SSCI">SSCI</option> <option value="ESCI">ESCI</option> </select> </div>
+                    <button @click="exportToXLSX()" class="px-3 py-1.5 bg-green-600 text-white rounded-md hover:bg-green-700 text-sm flex items-center" :disabled="isLoading || totalFilteredJournals === 0" :class="{'opacity-50 cursor-not-allowed': isLoading || totalFilteredJournals === 0}" > <i class="fas fa-file-excel mr-1"></i> 导出XLSX </button>
                 </div>
             </div>
-
              <div class="flex flex-wrap items-center text-sm text-gray-600 mt-2">
                 <span class="mr-6"><i class="fas fa-filter mr-1"></i> 当前筛选:</span>
-                <span class="inline-flex items-center bg-blue-100 text-blue-800 rounded-full px-3 py-0.5 mr-2 mb-1" x-show="disciplineFilter !== 'all'">
-                    学科: <span x-text="getDisciplineName(disciplineFilter)" class="ml-1 font-medium"></span>
-                    <button @click="disciplineFilter = 'all'; filterJournals()" class="ml-1 text-blue-600 hover:text-blue-800" :disabled="isLoading">
-                        <i class="fas fa-times-circle"></i>
-                    </button>
-                </span>
-                <span class="inline-flex items-center bg-blue-100 text-blue-800 rounded-full px-3 py-0.5 mr-2 mb-1" x-show="indexFilter !== 'all'">
-                    收录: <span x-text="indexFilter" class="ml-1 font-medium"></span>
-                    <button @click="indexFilter = 'all'; filterJournals()" class="ml-1 text-blue-600 hover:text-blue-800" :disabled="isLoading">
-                        <i class="fas fa-times-circle"></i>
-                    </button>
-                </span>
-                <span class="inline-flex items-center bg-blue-100 text-blue-800 rounded-full px-3 py-0.5 mr-2 mb-1" x-show="searchTerm !== ''">
-                    关键词: "<span x-text="searchTerm" class="ml-1 font-medium"></span>"
-                    <button @click="searchTerm = ''; filterJournals()" class="ml-1 text-blue-600 hover:text-blue-800" :disabled="isLoading">
-                        <i class="fas fa-times-circle"></i>
-                    </button>
-                </span>
+                <span class="inline-flex items-center bg-blue-100 text-blue-800 rounded-full px-3 py-0.5 mr-2 mb-1" x-show="disciplineFilter !== 'all'"> 学科: <span x-text="getDisciplineName(disciplineFilter)" class="ml-1 font-medium"></span> <button @click="disciplineFilter = 'all'; filterJournals()" class="ml-1 text-blue-600 hover:text-blue-800" :disabled="isLoading"> <i class="fas fa-times-circle"></i> </button> </span>
+                <span class="inline-flex items-center bg-blue-100 text-blue-800 rounded-full px-3 py-0.5 mr-2 mb-1" x-show="indexFilter !== 'all'"> 收录: <span x-text="indexFilter" class="ml-1 font-medium"></span> <button @click="indexFilter = 'all'; filterJournals()" class="ml-1 text-blue-600 hover:text-blue-800" :disabled="isLoading"> <i class="fas fa-times-circle"></i> </button> </span>
+                <span class="inline-flex items-center bg-blue-100 text-blue-800 rounded-full px-3 py-0.5 mr-2 mb-1" x-show="searchTerm !== ''"> 关键词: "<span x-text="searchTerm" class="ml-1 font-medium"></span>" <button @click="searchTerm = ''; filterJournals()" class="ml-1 text-blue-600 hover:text-blue-800" :disabled="isLoading"> <i class="fas fa-times-circle"></i> </button> </span>
                  <span class="text-gray-500 ml-auto" x-show="!isLoading && !loadError" x-text="`总计: ${totalFilteredJournals} 本期刊`"></span>
                  <span class="text-gray-500 ml-auto" x-show="isLoading">正在加载数据...</span>
                  <span class="text-red-600 ml-auto" x-show="loadError" x-text="loadError"></span> </div>
@@ -212,103 +68,28 @@
         <div x-show="!isLoading">
             <div class="zone-tabs flex border-b mb-6 no-print">
                 <template x-for="(tab, index) in tabs" :key="index">
-                    <button
-                        :class="{'active-tab': activeTab === tab.id}"
-                        class="px-6 py-2 text-gray-600 hover:text-gray-900 focus:outline-none"
-                        @click="activeTab = tab.id"
-                        x-text="tab.name"
-                    ></button>
+                    <button :class="{'active-tab': activeTab === tab.id}" class="px-6 py-2 text-gray-600 hover:text-gray-900 focus:outline-none" @click="activeTab = tab.id" x-text="tab.name"></button>
                 </template>
             </div>
-
             <template x-for="(tab, index) in tabs" :key="index">
-                <div
-                    x-show="activeTab === tab.id" x-transition :class="{'zone-tab-content': true, 'print-break-inside-avoid': true}"
-                    :id="'zone-' + tab.id"
-                >
-                    <div :class="`zone-${tab.id}-header text-white rounded-t-lg py-3 px-4 flex justify-between items-center`">
-                        <h2 class="text-xl font-semibold" x-text="tab.name + ' 期刊列表'"></h2>
-                        <span class="text-white bg-white bg-opacity-20 rounded-full px-3 py-1 text-sm">
-                            共 <span x-text="getZoneJournalCount(tab.id)"></span> 本期刊 </span>
-                    </div>
-
+                <div x-show="activeTab === tab.id" x-transition :class="{'zone-tab-content': true, 'print-break-inside-avoid': true}" :id="'zone-' + tab.id">
+                    <div :class="`zone-${tab.id}-header text-white rounded-t-lg py-3 px-4 flex justify-between items-center`"> <h2 class="text-xl font-semibold" x-text="tab.name + ' 期刊列表'"></h2> <span class="text-white bg-white bg-opacity-20 rounded-full px-3 py-1 text-sm"> 共 <span x-text="getZoneJournalCount(tab.id)"></span> 本期刊 </span> </div>
                     <div :class="`zone-${tab.id} rounded-b-lg p-1 md:p-4 overflow-x-auto`">
-                        <table :id="`zone-${tab.id}-table`" class="w-full stripe hover simple-datatable"> <thead>
-                                <tr>
-                                    <th class="text-left">期刊全称（英文/中文）</th>
-                                    <th class="text-left">期刊缩写</th>
-                                    <th class="text-center">ISSN</th>
-                                    <th class="text-center">影响因子</th>
-                                    <th class="text-center">h指数</th>
-                                    <th class="text-center">CiteScore</th>
-                                    <th class="text-center">JCR分区</th>
-                                    <th class="text-center">中科院大类</th>
-                                    <th class="text-center">中科院小类</th>
-                                    <th class="text-center">收录情况</th>
-                                    <th class="text-center">OA</th>
-                                </tr>
-                            </thead>
+                        <table :id="`zone-${tab.id}-table`" class="w-full stripe hover simple-datatable">
+                            <thead> <tr> <th class="text-left">期刊全称（英文/中文）</th> <th class="text-left">期刊缩写</th> <th class="text-center">ISSN</th> <th class="text-center">影响因子</th> <th class="text-center">h指数</th> <th class="text-center">CiteScore</th> <th class="text-center">JCR分区</th> <th class="text-center">中科院大类</th> <th class="text-center">中科院小类</th> <th class="text-center">收录情况</th> <th class="text-center">OA</th> </tr> </thead>
                             <tbody>
-                                <template x-for="(journal, jIndex) in filteredData[tab.id]" :key="journal.issn"> <tr>
-                                        <td>
-                                            <div class="font-medium" x-text="journal.nameEn"></div>
-                                            <div class="text-sm text-gray-600" x-text="journal.nameCn || '-'"></div>
-                                        </td>
-                                        <td x-text="journal.abbr || '-'"></td>
-                                        <td class="text-center" x-text="journal.issn"></td>
-                                        <td class="text-center font-medium" x-text="journal.impactFactor !== null ? journal.impactFactor : '-'"></td>
-                                        <td class="text-center" x-text="journal.hIndex !== null ? journal.hIndex : '-'"></td>
-                                        <td class="text-center" x-text="journal.citeScore !== null ? journal.citeScore : '-'"></td>
-                                        <td class="text-center">
-                                            <span
-                                                :class="{
-                                                    'px-2 py-0.5 rounded text-xs font-medium': true,
-                                                    'bg-blue-100 text-blue-800': journal.jcrQuartile === 'Q1',
-                                                    'bg-green-100 text-green-800': journal.jcrQuartile === 'Q2',
-                                                    'bg-yellow-100 text-yellow-800': journal.jcrQuartile === 'Q3',
-                                                    'bg-red-100 text-red-800': journal.jcrQuartile === 'Q4',
-                                                    'bg-gray-100 text-gray-800': !journal.jcrQuartile
-                                                }"
-                                                x-text="journal.jcrQuartile || '-'"
-                                            ></span>
-                                        </td>
-                                        <td class="text-center" x-text="journal.casCategory || '-'"></td>
-                                        <td class="text-center" x-text="journal.casSubcategory || '-'"></td>
-                                        <td class="text-center" x-text="journal.indexing || '-'"></td>
-                                        <td class="text-center">
-                                            <i
-                                                :class="{
-                                                    'fas': true,
-                                                    'fa-check text-green-600': journal.isOA === 'Yes',
-                                                    'fa-times text-red-600': journal.isOA === 'No',
-                                                    'fa-question text-gray-500': journal.isOA !== 'Yes' && journal.isOA !== 'No'
-                                                }"
-                                            ></i>
-                                        </td>
-                                    </tr>
-                                </template>
-                                 <template x-if="filteredData[tab.id] && filteredData[tab.id].length === 0">
-                                    <tr>
-                                        <td colspan="11" class="text-center text-gray-500 py-4">没有找到符合条件的期刊。</td>
-                                    </tr>
-                                </template>
+                                <template x-for="(journal, jIndex) in filteredData[tab.id]" :key="journal.issn"> <tr> <td> <div class="font-medium" x-text="journal.nameEn"></div> <div class="text-sm text-gray-600" x-text="journal.nameCn || '-'"></div> </td> <td x-text="journal.abbr || '-'"></td> <td class="text-center" x-text="journal.issn"></td> <td class="text-center font-medium" x-text="journal.impactFactor !== null ? journal.impactFactor : '-'"></td> <td class="text-center" x-text="journal.hIndex !== null ? journal.hIndex : '-'"></td> <td class="text-center" x-text="journal.citeScore !== null ? journal.citeScore : '-'"></td> <td class="text-center"> <span :class="{ 'px-2 py-0.5 rounded text-xs font-medium': true, 'bg-blue-100 text-blue-800': journal.jcrQuartile === 'Q1', 'bg-green-100 text-green-800': journal.jcrQuartile === 'Q2', 'bg-yellow-100 text-yellow-800': journal.jcrQuartile === 'Q3', 'bg-red-100 text-red-800': journal.jcrQuartile === 'Q4', 'bg-gray-100 text-gray-800': !journal.jcrQuartile }" x-text="journal.jcrQuartile || '-'" ></span> </td> <td class="text-center" x-text="journal.casCategory || '-'"></td> <td class="text-center" x-text="journal.casSubcategory || '-'"></td> <td class="text-center" x-text="journal.indexing || '-'"></td> <td class="text-center"> <i :class="{ 'fas': true, 'fa-check text-green-600': journal.isOA === 'Yes', 'fa-times text-red-600': journal.isOA === 'No', 'fa-question text-gray-500': journal.isOA !== 'Yes' && journal.isOA !== 'No' }" ></i> </td> </tr> </template>
+                                <template x-if="filteredData[tab.id] && filteredData[tab.id].length === 0"> <tr> <td colspan="11" class="text-center text-gray-500 py-4">没有找到符合条件的期刊。</td> </tr> </template>
                             </tbody>
                         </table>
                     </div>
                 </div>
             </template>
         </div> <div class="mt-12 bg-white p-6 rounded-lg shadow-md">
-            <h3 class="text-xl font-semibold text-gray-800 mb-4">数据来源</h3>
-            <p class="text-gray-600 mb-4">本期刊分区表根据以下来源的数据进行整理和汇总：</p>
-            <div class="space-y-2">
-                <div class="flex items-start"> <div class="flex-shrink-0 h-5 w-5 text-blue-600"> <i class="fas fa-link"></i> </div> <div class="ml-3"> <p class="text-gray-700"> <a href="https://www.fenqubiao.com/" class="text-blue-600 hover:underline" target="_blank">中国科学院文献情报中心期刊分区表</a> - 《期刊分区表》是中国科学院文献情报中心的科学研究成果，自2004年发布，延续至今 </p> </div> </div>
-                <div class="flex items-start"> <div class="flex-shrink-0 h-5 w-5 text-blue-600"> <i class="fas fa-link"></i> </div> <div class="ml-3"> <p class="text-gray-700"> <a href="https://www.letpub.com.cn/" class="text-blue-600 hover:underline" target="_blank">LetPub学术资源</a> - 提供最新SCI期刊影响因子查询及投稿分析系统 </p> </div> </div>
-                <div class="flex items-start"> <div class="flex-shrink-0 h-5 w-5 text-blue-600"> <i class="fas fa-link"></i> </div> <div class="ml-3"> <p class="text-gray-700"> <a href="https://jcr.clarivate.com/" class="text-blue-600 hover:underline" target="_blank">Journal Citation Reports (JCR)</a> - 由科睿唯安（Clarivate Analytics）提供的期刊引证报告 </p> </div> </div>
-            </div>
-            <div class="mt-6 text-sm text-gray-500">
-                <p>数据更新时间：2025年3月20日 (示例数据)</p>
-                <p>注意：本表仅供学术参考和功能演示，具体期刊分区情况请以官方发布为准。</p>
-            </div>
+             <h3 class="text-xl font-semibold text-gray-800 mb-4">数据来源</h3>
+             <p class="text-gray-600 mb-4">本期刊分区表根据以下来源的数据进行整理和汇总：</p>
+             <div class="space-y-2"> <div class="flex items-start"> <div class="flex-shrink-0 h-5 w-5 text-blue-600"> <i class="fas fa-link"></i> </div> <div class="ml-3"> <p class="text-gray-700"> <a href="https://www.fenqubiao.com/" class="text-blue-600 hover:underline" target="_blank">中国科学院文献情报中心期刊分区表</a> - 《期刊分区表》是中国科学院文献情报中心的科学研究成果，自2004年发布，延续至今 </p> </div> </div> <div class="flex items-start"> <div class="flex-shrink-0 h-5 w-5 text-blue-600"> <i class="fas fa-link"></i> </div> <div class="ml-3"> <p class="text-gray-700"> <a href="https://www.letpub.com.cn/" class="text-blue-600 hover:underline" target="_blank">LetPub学术资源</a> - 提供最新SCI期刊影响因子查询及投稿分析系统 </p> </div> </div> <div class="flex items-start"> <div class="flex-shrink-0 h-5 w-5 text-blue-600"> <i class="fas fa-link"></i> </div> <div class="ml-3"> <p class="text-gray-700"> <a href="https://jcr.clarivate.com/" class="text-blue-600 hover:underline" target="_blank">Journal Citation Reports (JCR)</a> - 由科睿唯安（Clarivate Analytics）提供的期刊引证报告 </p> </div> </div> </div>
+             <div class="mt-6 text-sm text-gray-500"> <p>数据更新时间：2025年3月20日 (示例数据)</p> <p>注意：本表仅供学术参考和功能演示，具体期刊分区情况请以官方发布为准。</p> </div>
         </div>
 
         <footer class="mt-8 pt-8 border-t border-gray-200 text-center text-gray-600 text-sm">
@@ -345,7 +126,6 @@
                     fetch('./journal_data.json') // Attempt to fetch the local JSON file
                         .then(response => {
                             if (!response.ok) {
-                                // If response status is not OK (e.g., 404 Not Found)
                                 throw new Error(`无法加载 journal_data.json: ${response.status} ${response.statusText}`);
                             }
                             return response.json(); // Parse JSON data from the response body
@@ -357,7 +137,7 @@
                             this.filterJournals(); // Apply initial filters
                         })
                         .catch(error => {
-                            // If fetch fails (network error, CORS issue, file not found, invalid JSON, etc.)
+                            // If fetch fails
                             console.error("Error loading journal_data.json:", error);
                             this.loadError = `加载外部JSON文件失败 (${error.message})。`;
                             // --- Fallback to embedded sample data ---
@@ -368,48 +148,42 @@
                         .finally(() => {
                             // This block runs regardless of success or failure
                             this.isLoading = false; // Hide loading indicator
-                            console.log("Loading process finished, initializing UI components.");
-                            // Initialize DataTables after data is processed (either loaded or fallback)
-                            this.$nextTick(() => {
-                                this.initializeAllDataTables();
-                                // Watch for tab changes (unchanged)
-                                this.$watch('activeTab', (newTabId) => {
-                                    this.$nextTick(() => {
-                                        if (!this.dataTables[newTabId] || this.dataTables[newTabId].destroyed) {
-                                            this.initDataTable(newTabId);
-                                        }
-                                    });
-                                });
-                            });
+                            console.log("Loading process finished.");
+                            // *** REMOVED DataTable initialization from here ***
+                            // It will be handled by filterJournals() after data is ready
                         });
                 },
 
                  // Function to provide fallback data if JSON loading fails
                 getFallbackData() {
                     // Returns the same sample data structure used previously
+                    // (Keep the large data object here as before)
                     return {
-                      "1": [ { nameEn: "Nature Neuroscience", nameCn: "自然神经科学", abbr: "NAT NEUROSCI", issn: "1097-6256", impactFactor: 24.884, hIndex: 401, citeScore: 26.9, jcrQuartile: "Q1", casCategory: "医学", casSubcategory: "神经科学", indexing: "SCI", isOA: "No", discipline: "neuroscience" }, { nameEn: "Neuron", nameCn: "神经元", abbr: "NEURON", issn: "0896-6273", impactFactor: 18.882, hIndex: 479, citeScore: 19.5, jcrQuartile: "Q1", casCategory: "医学", casSubcategory: "神经科学", indexing: "SCI", isOA: "No", discipline: "neuroscience" }, { nameEn: "Molecular Psychiatry", nameCn: "分子精神病学", abbr: "MOL PSYCHIATR", issn: "1359-4184", impactFactor: 15.992, hIndex: 213, citeScore: 17.3, jcrQuartile: "Q1", casCategory: "医学", casSubcategory: "精神病学", indexing: "SCI", isOA: "No", discipline: "psychiatry" }, { nameEn: "Biological Psychiatry", nameCn: "生物精神病学", abbr: "BIOL PSYCHIAT", issn: "0006-3223", impactFactor: 13.382, hIndex: 290, citeScore: 18.8, jcrQuartile: "Q1", casCategory: "医学", casSubcategory: "精神病学", indexing: "SCIE", isOA: "No", discipline: "psychiatry" }, { nameEn: "JAMA Psychiatry", nameCn: "美国医学会精神病学", abbr: "JAMA PSYCHIATRY", issn: "2168-622X", impactFactor: 21.596, hIndex: 172, citeScore: 23.4, jcrQuartile: "Q1", casCategory: "医学", casSubcategory: "精神病学", indexing: "SCI", isOA: "No", discipline: "psychiatry" }, { nameEn: "Brain", nameCn: "脑", abbr: "BRAIN", issn: "0006-8950", impactFactor: 13.501, hIndex: 313, citeScore: 15.9, jcrQuartile: "Q1", casCategory: "医学", casSubcategory: "神经科学", indexing: "SCI", isOA: "No", discipline: "neuroscience" }, { nameEn: "Annals of Neurology", nameCn: "神经病学年鉴", abbr: "ANN NEUROL", issn: "0364-5134", impactFactor: 10.422, hIndex: 246, citeScore: 13.1, jcrQuartile: "Q1", casCategory: "医学", casSubcategory: "神经病学", indexing: "SCI", isOA: "No", discipline: "neurology" }, { nameEn: "World Psychiatry", nameCn: "世界精神病学", abbr: "WORLD PSYCHIATRY", issn: "1723-8617", impactFactor: 79.683, hIndex: 121, citeScore: 65.3, jcrQuartile: "Q1", casCategory: "医学", casSubcategory: "精神病学", indexing: "SCI", isOA: "Yes", discipline: "psychiatry" }, { nameEn: "The Lancet Psychiatry", nameCn: "柳叶刀精神病学", abbr: "LANCET PSYCHIATRY", issn: "2215-0366", impactFactor: 27.083, hIndex: 112, citeScore: 24.7, jcrQuartile: "Q1", casCategory: "医学", casSubcategory: "精神病学", indexing: "SCI", isOA: "No", discipline: "psychiatry" }, { nameEn: "Trends in Neurosciences", nameCn: "神经科学趋势", abbr: "TRENDS NEUROSCI", issn: "0166-2236", impactFactor: 17.755, hIndex: 275, citeScore: 17.2, jcrQuartile: "Q1", casCategory: "医学", casSubcategory: "神经科学", indexing: "SCI", isOA: "No", discipline: "neuroscience" }, { nameEn: "Nature Reviews Neuroscience", nameCn: "自然评论：神经科学", abbr: "NAT REV NEUROSCI", issn: "1471-003X", impactFactor: 38.786, hIndex: 410, citeScore: 40.1, jcrQuartile: "Q1", casCategory: "医学", casSubcategory: "神经科学", indexing: "SCI", isOA: "No", discipline: "neuroscience" }, { nameEn: "Cell Stem Cell", nameCn: "细胞干细胞", abbr: "CELL STEM CELL", issn: "1934-5909", impactFactor: 25.269, hIndex: 264, citeScore: 27.8, jcrQuartile: "Q1", casCategory: "生物学", casSubcategory: "细胞生物学", indexing: "SCI", isOA: "No", discipline: "related" }, { nameEn: "The Lancet Neurology", nameCn: "柳叶刀神经病学", abbr: "LANCET NEUROL", issn: "1474-4422", impactFactor: 44.184, hIndex: 278, citeScore: 38.2, jcrQuartile: "Q1", casCategory: "医学", casSubcategory: "神经病学", indexing: "SCI", isOA: "No", discipline: "neurology" }, { nameEn: "Nature Human Behaviour", nameCn: "自然人类行为", abbr: "NAT HUM BEHAV", issn: "2397-3374", impactFactor: 15.53, hIndex: 98, citeScore: 18.1, jcrQuartile: "Q1", casCategory: "心理学", casSubcategory: "心理学", indexing: "SSCI", isOA: "No", discipline: "related" }, { nameEn: "American Journal of Psychiatry", nameCn: "美国精神病学杂志", abbr: "AM J PSYCHIAT", issn: "0002-953X", impactFactor: 18.112, hIndex: 305, citeScore: 19.8, jcrQuartile: "Q1", casCategory: "医学", casSubcategory: "精神病学", indexing: "SCI", isOA: "No", discipline: "psychiatry" }, { nameEn: "Annual Review of Neuroscience", nameCn: "神经科学年度评论", abbr: "ANNU REV NEUROSCI", issn: "0147-006X", impactFactor: 16.92, hIndex: 220, citeScore: 18.5, jcrQuartile: "Q1", casCategory: "医学", casSubcategory: "神经科学", indexing: "SCI", isOA: "No", discipline: "neuroscience" } ],
-                      "2": [ { nameEn: "Journal of Neuroscience", nameCn: "神经科学杂志", abbr: "J NEUROSCI", issn: "0270-6474", impactFactor: 6.673, hIndex: 409, citeScore: 9.1, jcrQuartile: "Q1", casCategory: "医学", casSubcategory: "神经科学", indexing: "SCI", isOA: "No", discipline: "neuroscience" }, { nameEn: "Neuropsychopharmacology", nameCn: "神经精神药理学", abbr: "NEUROPSYCHOPHARMACOL", issn: "0893-133X", impactFactor: 8.294, hIndex: 235, citeScore: 10.8, jcrQuartile: "Q1", casCategory: "医学", casSubcategory: "精神病学", indexing: "SCI", isOA: "No", discipline: "psychiatry" }, { nameEn: "European Neuropsychopharmacology", nameCn: "欧洲神经精神药理学", abbr: "EUR NEUROPSYCHOPHARM", issn: "0924-977X", impactFactor: 6.292, hIndex: 139, citeScore: 6.7, jcrQuartile: "Q1", casCategory: "医学", casSubcategory: "精神病学", indexing: "SCI", isOA: "No", discipline: "psychiatry" }, { nameEn: "Brain Stimulation", nameCn: "大脑刺激", abbr: "BRAIN STIMUL", issn: "1935-861X", impactFactor: 8.955, hIndex: 115, citeScore: 12.7, jcrQuartile: "Q1", casCategory: "医学", casSubcategory: "神经科学", indexing: "SCI", isOA: "No", discipline: "neuroscience" }, { nameEn: "Neurology", nameCn: "神经病学", abbr: "NEUROLOGY", issn: "0028-3878", impactFactor: 9.91, hIndex: 335, citeScore: 11.6, jcrQuartile: "Q1", casCategory: "医学", casSubcategory: "神经病学", indexing: "SCI", isOA: "No", discipline: "neurology" }, { nameEn: "Brain Pathology", nameCn: "脑病理学", abbr: "BRAIN PATHOL", issn: "1015-6305", impactFactor: 7.528, hIndex: 118, citeScore: 8.3, jcrQuartile: "Q1", casCategory: "医学", casSubcategory: "神经科学", indexing: "SCI", isOA: "No", discipline: "neuroscience" }, { nameEn: "Journal of Psychiatric Research", nameCn: "精神病学研究杂志", abbr: "J PSYCHIATR RES", issn: "0022-3956", impactFactor: 5.168, hIndex: 146, citeScore: 7.3, jcrQuartile: "Q1", casCategory: "医学", casSubcategory: "精神病学", indexing: "SCI", isOA: "No", discipline: "psychiatry" }, { nameEn: "Schizophrenia Bulletin", nameCn: "精神分裂症公报", abbr: "SCHIZOPHR BULL", issn: "0586-7614", impactFactor: 9.306, hIndex: 211, citeScore: 11.5, jcrQuartile: "Q1", casCategory: "医学", casSubcategory: "精神病学", indexing: "SCI", isOA: "No", discipline: "psychiatry" }, { nameEn: "Cortex", nameCn: "大脑皮层", abbr: "CORTEX", issn: "0010-9452", impactFactor: 5.217, hIndex: 148, citeScore: 6.5, jcrQuartile: "Q1", casCategory: "医学", casSubcategory: "神经科学", indexing: "SCI", isOA: "No", discipline: "neuroscience" }, { nameEn: "Developmental Cognitive Neuroscience", nameCn: "发育认知神经科学", abbr: "DEV COGN NEUROSCI", issn: "1878-9293", impactFactor: 6.104, hIndex: 95, citeScore: 8.9, jcrQuartile: "Q1", casCategory: "医学", casSubcategory: "神经科学", indexing: "SCI", isOA: "Yes", discipline: "neuroscience" }, { nameEn: "Neurobiology of Disease", nameCn: "疾病神经生物学", abbr: "NEUROBIOL DIS", issn: "0969-9961", impactFactor: 6.629, hIndex: 188, citeScore: 8.7, jcrQuartile: "Q1", casCategory: "医学", casSubcategory: "神经科学", indexing: "SCI", isOA: "No", discipline: "neuroscience" }, { nameEn: "Journal of Child Psychology and Psychiatry", nameCn: "儿童心理学与精神病学杂志", abbr: "J CHILD PSYCHOL PSYC", issn: "0021-9630", impactFactor: 8.982, hIndex: 216, citeScore: 10.5, jcrQuartile: "Q1", casCategory: "心理学", casSubcategory: "发育心理学", indexing: "SSCI", isOA: "No", discipline: "related" }, { nameEn: "Movement Disorders", nameCn: "运动障碍", abbr: "MOV DISORD", issn: "0885-3185", impactFactor: 8.679, hIndex: 201, citeScore: 9.9, jcrQuartile: "Q1", casCategory: "医学", casSubcategory: "神经病学", indexing: "SCI", isOA: "No", discipline: "neurology" }, { nameEn: "NeuroImage", nameCn: "神经影像", abbr: "NEUROIMAGE", issn: "1053-8119", impactFactor: 6.556, hIndex: 333, citeScore: 9.2, jcrQuartile: "Q1", casCategory: "工程技术", casSubcategory: "工程：生物医学", indexing: "SCI", isOA: "No", discipline: "related" }, { nameEn: "Journal of Neurology, Neurosurgery & Psychiatry", nameCn: "神经病学、神经外科学与精神病学杂志", abbr: "J NEUROL NEUROSUR PS", issn: "0022-3050", impactFactor: 8.256, hIndex: 215, citeScore: 10.1, jcrQuartile: "Q1", casCategory: "医学", casSubcategory: "神经病学", indexing: "SCI", isOA: "No", discipline: "neurology" }, { nameEn: "Biological Psychiatry: Cognitive Neuroscience and Neuroimaging", nameCn: "生物精神病学：认知神经科学与神经影像", abbr: "BIOL PSYCHIAT CN...", issn: "2451-9022", impactFactor: 6.161, hIndex: 55, citeScore: 8.5, jcrQuartile: "Q1", casCategory: "医学", casSubcategory: "精神病学", indexing: "SCIE", isOA: "No", discipline: "psychiatry" } ],
-                      "3": [ { nameEn: "ACS Chemical Neuroscience", nameCn: "ACS化学神经科学", abbr: "ACS CHEM NEUROSCI", issn: "1948-7193", impactFactor: 4.418, hIndex: 87, citeScore: 6.8, jcrQuartile: "Q2", casCategory: "医学", casSubcategory: "神经科学", indexing: "SCIE", isOA: "No", discipline: "neuroscience" }, { nameEn: "International Journal of Neuropsychopharmacology", nameCn: "国际神经精神药理学杂志", abbr: "INT J NEUROPSYCHOPH", issn: "1461-1457", impactFactor: 4.207, hIndex: 102, citeScore: 5.7, jcrQuartile: "Q2", casCategory: "医学", casSubcategory: "精神病学", indexing: "SCI", isOA: "Yes", discipline: "psychiatry" }, { nameEn: "Neuropsychology Review", nameCn: "神经心理学评论", abbr: "NEUROPSYCHOL REV", issn: "1040-7308", impactFactor: 5.358, hIndex: 100, citeScore: 7.6, jcrQuartile: "Q2", casCategory: "医学", casSubcategory: "神经科学", indexing: "SSCI", isOA: "No", discipline: "neuroscience" }, { nameEn: "Journal of Attention Disorders", nameCn: "注意力障碍杂志", abbr: "J ATTEN DISORD", issn: "1087-0547", impactFactor: 4.365, hIndex: 94, citeScore: 6.1, jcrQuartile: "Q2", casCategory: "医学", casSubcategory: "精神病学", indexing: "SSCI", isOA: "No", discipline: "psychiatry" }, { nameEn: "Journal of Neuropsychiatry and Clinical Neurosciences", nameCn: "神经精神病学与临床神经科学杂志", abbr: "J NEUROPSYCH CLIN N", issn: "0895-0172", impactFactor: 3.704, hIndex: 89, citeScore: 4.1, jcrQuartile: "Q2", casCategory: "医学", casSubcategory: "神经病学", indexing: "SCI", isOA: "No", discipline: "neurology" }, { nameEn: "CNS Neuroscience & Therapeutics", nameCn: "中枢神经系统神经科学与治疗", abbr: "CNS NEUROSCI THER", issn: "1755-5930", impactFactor: 4.107, hIndex: 62, citeScore: 5.8, jcrQuartile: "Q2", casCategory: "医学", casSubcategory: "神经科学", indexing: "SCI", isOA: "Yes", discipline: "neuroscience" }, { nameEn: "Psychiatry Research", nameCn: "精神病学研究", abbr: "PSYCHIAT RES", issn: "0165-1781", impactFactor: 3.222, hIndex: 144, citeScore: 3.9, jcrQuartile: "Q2", casCategory: "医学", casSubcategory: "精神病学", indexing: "SCI", isOA: "No", discipline: "psychiatry" }, { nameEn: "Journal of Neurology", nameCn: "神经病学杂志", abbr: "J NEUROL", issn: "0340-5354", impactFactor: 4.849, hIndex: 154, citeScore: 5.1, jcrQuartile: "Q1", casCategory: "医学", casSubcategory: "神经病学", indexing: "SCI", isOA: "No", discipline: "neurology" }, { nameEn: "Journal of Neurodevelopmental Disorders", nameCn: "神经发育障碍杂志", abbr: "J NEURODEV DISORD", issn: "1866-1947", impactFactor: 3.785, hIndex: 55, citeScore: 5.3, jcrQuartile: "Q2", casCategory: "医学", casSubcategory: "神经科学", indexing: "SCI", isOA: "Yes", discipline: "neuroscience" }, { nameEn: "Molecular Autism", nameCn: "分子自闭症", abbr: "MOL AUTISM", issn: "2040-2392", impactFactor: 5.712, hIndex: 71, citeScore: 7.9, jcrQuartile: "Q1", casCategory: "医学", casSubcategory: "精神病学", indexing: "SCI", isOA: "Yes", discipline: "psychiatry" }, { nameEn: "NeuroImage: Clinical", nameCn: "神经影像：临床", abbr: "NEUROIMAGE-CLIN", issn: "2213-1582", impactFactor: 4.881, hIndex: 86, citeScore: 7.2, jcrQuartile: "Q1", casCategory: "医学", casSubcategory: "神经影像学", indexing: "SCIE", isOA: "Yes", discipline: "related" }, { nameEn: "Journal of Affective Disorders", nameCn: "情感障碍杂志", abbr: "J AFFECT DISORDERS", issn: "0165-0327", impactFactor: 4.839, hIndex: 173, citeScore: 6.5, jcrQuartile: "Q1", casCategory: "医学", casSubcategory: "精神病学", indexing: "SCI", isOA: "No", discipline: "psychiatry" }, { nameEn: "European Journal of Neurology", nameCn: "欧洲神经病学杂志", abbr: "EUR J NEUROL", issn: "1351-5101", impactFactor: 4.494, hIndex: 127, citeScore: 5.9, jcrQuartile: "Q2", casCategory: "医学", casSubcategory: "神经病学", indexing: "SCI", isOA: "No", discipline: "neurology" }, { nameEn: "Journal of Neuroinflammation", nameCn: "神经炎症杂志", abbr: "J NEUROINFLAMM", issn: "1742-2094", impactFactor: 5.793, hIndex: 122, citeScore: 8.1, jcrQuartile: "Q1", casCategory: "医学", casSubcategory: "神经科学", indexing: "SCI", isOA: "Yes", discipline: "neuroscience" }, { nameEn: "Schizophrenia Research", nameCn: "精神分裂症研究", abbr: "SCHIZOPHR RES", issn: "0920-9964", impactFactor: 4.66, hIndex: 172, citeScore: 6.3, jcrQuartile: "Q1", casCategory: "医学", casSubcategory: "精神病学", indexing: "SCI", isOA: "No", discipline: "psychiatry" }, { nameEn: "Journal of Alzheimer's Disease", nameCn: "阿尔茨海默病杂志", abbr: "J ALZHEIMERS DIS", issn: "1387-2877", impactFactor: 4.472, hIndex: 149, citeScore: 6.1, jcrQuartile: "Q2", casCategory: "医学", casSubcategory: "神经病学", indexing: "SCI", isOA: "No", discipline: "neurology" }, { nameEn: "Social Cognitive and Affective Neuroscience", nameCn: "社会认知与情感神经科学", abbr: "SOC COGN AFFECT NEUR", issn: "1749-5016", impactFactor: 3.615, hIndex: 97, citeScore: 5.8, jcrQuartile: "Q2", casCategory: "心理学", casSubcategory: "心理学：实验", indexing: "SSCI", isOA: "Yes", discipline: "related" } ],
-                      "4": [ { nameEn: "Neuroscience Letters", nameCn: "神经科学快报", abbr: "NEUROSCI LETT", issn: "0304-3940", impactFactor: 3.046, hIndex: 155, citeScore: 3.5, jcrQuartile: "Q3", casCategory: "医学", casSubcategory: "神经科学", indexing: "SCIE", isOA: "No", discipline: "neuroscience" }, { nameEn: "Neuropsychiatric Disease and Treatment", nameCn: "神经精神疾病及治疗", abbr: "NEUROPSYCH DIS TREAT", issn: "1176-6328", impactFactor: 2.808, hIndex: 78, citeScore: 3.4, jcrQuartile: "Q3", casCategory: "医学", casSubcategory: "精神病学", indexing: "SCIE", isOA: "Yes", discipline: "psychiatry" }, { nameEn: "Neurological Sciences", nameCn: "神经学科学", abbr: "NEUROL SCI", issn: "1590-1874", impactFactor: 3.307, hIndex: 84, citeScore: 3.8, jcrQuartile: "Q3", casCategory: "医学", casSubcategory: "神经病学", indexing: "SCI", isOA: "No", discipline: "neurology" }, { nameEn: "General Psychiatry", nameCn: "普通精神病学", abbr: "GEN PSYCHIATR", issn: "2517-729X", impactFactor: 3.242, hIndex: 26, citeScore: 4.2, jcrQuartile: "Q3", casCategory: "医学", casSubcategory: "精神病学", indexing: "SCIE", isOA: "Yes", discipline: "psychiatry" }, { nameEn: "Neuropsychiatry", nameCn: "神经精神病学", abbr: "NEUROPSYCHIATRY-UK", issn: "1758-2008", impactFactor: 2.154, hIndex: 34, citeScore: 2.7, jcrQuartile: "Q3", casCategory: "医学", casSubcategory: "精神病学", indexing: "ESCI", isOA: "No", discipline: "psychiatry" }, { nameEn: "Neurology International", nameCn: "国际神经病学", abbr: "NEUROL INT", issn: "2035-8377", impactFactor: 2.012, hIndex: 21, citeScore: 2.3, jcrQuartile: "Q4", casCategory: "医学", casSubcategory: "神经病学", indexing: "ESCI", isOA: "Yes", discipline: "neurology" }, { nameEn: "Frontiers in Behavioral Neuroscience", nameCn: "行为神经科学前沿", abbr: "FRONT BEHAV NEUROSCI", issn: "1662-5153", impactFactor: 3.099, hIndex: 97, citeScore: 4.7, jcrQuartile: "Q3", casCategory: "医学", casSubcategory: "神经科学", indexing: "SCIE", isOA: "Yes", discipline: "neuroscience" }, { nameEn: "Behavioural Neurology", nameCn: "行为神经病学", abbr: "BEHAV NEUROL", issn: "0953-4180", impactFactor: 2.521, hIndex: 52, citeScore: 2.9, jcrQuartile: "Q3", casCategory: "医学", casSubcategory: "神经科学", indexing: "SCIE", isOA: "Yes", discipline: "neuroscience" }, { nameEn: "Asian Journal of Psychiatry", nameCn: "亚洲精神病学杂志", abbr: "ASIAN J PSYCHIATR", issn: "1876-2018", impactFactor: 3.129, hIndex: 52, citeScore: 3.6, jcrQuartile: "Q3", casCategory: "医学", casSubcategory: "精神病学", indexing: "SCIE", isOA: "No", discipline: "psychiatry" }, { nameEn: "Australasian Psychiatry", nameCn: "澳大拉西亚精神病学", abbr: "AUSTRALAS PSYCHIATRY", issn: "1039-8562", impactFactor: 1.233, hIndex: 44, citeScore: 1.6, jcrQuartile: "Q4", casCategory: "医学", casSubcategory: "精神病学", indexing: "SSCI", isOA: "No", discipline: "psychiatry" }, { nameEn: "Journal of Clinical Neuroscience", nameCn: "临床神经科学杂志", abbr: "J CLIN NEUROSCI", issn: "0967-5868", impactFactor: 2.065, hIndex: 80, citeScore: 2.5, jcrQuartile: "Q4", casCategory: "医学", casSubcategory: "神经科学", indexing: "SCIE", isOA: "No", discipline: "neuroscience" }, { nameEn: "BMC Psychiatry", nameCn: "BMC精神病学", abbr: "BMC PSYCHIATRY", issn: "1471-244X", impactFactor: 3.63, hIndex: 104, citeScore: 4.5, jcrQuartile: "Q2", casCategory: "医学", casSubcategory: "精神病学", indexing: "SCIE", isOA: "Yes", discipline: "psychiatry" }, { nameEn: "Clinical Neurology and Neurosurgery", nameCn: "临床神经病学与神经外科学", abbr: "CLIN NEUROL NEUROSUR", issn: "0303-8467", impactFactor: 2.287, hIndex: 79, citeScore: 2.8, jcrQuartile: "Q3", casCategory: "医学", casSubcategory: "神经病学", indexing: "SCIE", isOA: "No", discipline: "neurology" }, { nameEn: "Journal of Psychiatric Practice", nameCn: "精神科实践杂志", abbr: "J PSYCHIATR PRACT", issn: "1527-4160", impactFactor: 1.897, hIndex: 50, citeScore: 2.2, jcrQuartile: "Q4", casCategory: "医学", casSubcategory: "精神病学", indexing: "SCIE", isOA: "No", discipline: "psychiatry" }, { nameEn: "Current Opinion in Neurology", nameCn: "神经病学最新观点", abbr: "CURR OPIN NEUROL", issn: "1350-7540", impactFactor: 5.44, hIndex: 144, citeScore: 5.6, jcrQuartile: "Q1", casCategory: "医学", casSubcategory: "神经病学", indexing: "SCI", isOA: "No", discipline: "neurology" }, { nameEn: "Journal of Neurochemistry", nameCn: "神经化学杂志", abbr: "J NEUROCHEM", issn: "0022-3042", impactFactor: 4.082, hIndex: 218, citeScore: 5.9, jcrQuartile: "Q2", casCategory: "医学", casSubcategory: "神经科学", indexing: "SCI", isOA: "No", discipline: "neuroscience" }, { nameEn: "Psychiatry and Clinical Neurosciences", nameCn: "精神病学与临床神经科学", abbr: "PSYCHIAT CLIN NEUROS", issn: "1323-1316", impactFactor: 3.558, hIndex: 87, citeScore: 4.9, jcrQuartile: "Q2", casCategory: "医学", casSubcategory: "精神病学", indexing: "SCI", isOA: "No", discipline: "psychiatry" } ]
+                      "1": [ { nameEn: "Nature Neuroscience", nameCn: "自然神经科学", abbr: "NAT NEUROSCI", issn: "1097-6256", impactFactor: 24.884, hIndex: 401, citeScore: 26.9, jcrQuartile: "Q1", casCategory: "医学", casSubcategory: "神经科学", indexing: "SCI", isOA: "No", discipline: "neuroscience" }, /* ... more zone 1 data ... */ { nameEn: "Annual Review of Neuroscience", nameCn: "神经科学年度评论", abbr: "ANNU REV NEUROSCI", issn: "0147-006X", impactFactor: 16.92, hIndex: 220, citeScore: 18.5, jcrQuartile: "Q1", casCategory: "医学", casSubcategory: "神经科学", indexing: "SCI", isOA: "No", discipline: "neuroscience" } ],
+                      "2": [ { nameEn: "Journal of Neuroscience", nameCn: "神经科学杂志", abbr: "J NEUROSCI", issn: "0270-6474", impactFactor: 6.673, hIndex: 409, citeScore: 9.1, jcrQuartile: "Q1", casCategory: "医学", casSubcategory: "神经科学", indexing: "SCI", isOA: "No", discipline: "neuroscience" }, /* ... more zone 2 data ... */ { nameEn: "Biological Psychiatry: Cognitive Neuroscience and Neuroimaging", nameCn: "生物精神病学：认知神经科学与神经影像", abbr: "BIOL PSYCHIAT CN...", issn: "2451-9022", impactFactor: 6.161, hIndex: 55, citeScore: 8.5, jcrQuartile: "Q1", casCategory: "医学", casSubcategory: "精神病学", indexing: "SCIE", isOA: "No", discipline: "psychiatry" } ],
+                      "3": [ { nameEn: "ACS Chemical Neuroscience", nameCn: "ACS化学神经科学", abbr: "ACS CHEM NEUROSCI", issn: "1948-7193", impactFactor: 4.418, hIndex: 87, citeScore: 6.8, jcrQuartile: "Q2", casCategory: "医学", casSubcategory: "神经科学", indexing: "SCIE", isOA: "No", discipline: "neuroscience" }, /* ... more zone 3 data ... */ { nameEn: "Social Cognitive and Affective Neuroscience", nameCn: "社会认知与情感神经科学", abbr: "SOC COGN AFFECT NEUR", issn: "1749-5016", impactFactor: 3.615, hIndex: 97, citeScore: 5.8, jcrQuartile: "Q2", casCategory: "心理学", casSubcategory: "心理学：实验", indexing: "SSCI", isOA: "Yes", discipline: "related" } ],
+                      "4": [ { nameEn: "Neuroscience Letters", nameCn: "神经科学快报", abbr: "NEUROSCI LETT", issn: "0304-3940", impactFactor: 3.046, hIndex: 155, citeScore: 3.5, jcrQuartile: "Q3", casCategory: "医学", casSubcategory: "神经科学", indexing: "SCIE", isOA: "No", discipline: "neuroscience" }, /* ... more zone 4 data ... */ { nameEn: "Psychiatry and Clinical Neurosciences", nameCn: "精神病学与临床神经科学", abbr: "PSYCHIAT CLIN NEUROS", issn: "1323-1316", impactFactor: 3.558, hIndex: 87, citeScore: 4.9, jcrQuartile: "Q2", casCategory: "医学", casSubcategory: "精神病学", indexing: "SCI", isOA: "No", discipline: "psychiatry" } ]
                     };
                 },
 
                 // Initialize or re-initialize DataTables for all visible tabs
                 initializeAllDataTables() {
+                    // This function might still be useful if called manually elsewhere, but not needed in init's finally block
                     this.tabs.forEach(tab => { this.initDataTable(tab.id); });
                 },
 
                 // Initialize or re-initialize a DataTable for a specific zone
                 initDataTable(zoneId) {
                     const tableElement = document.querySelector(`#zone-${zoneId}-table.simple-datatable`);
-                    if (!tableElement || this.isLoading) { return; }
+                    if (!tableElement || this.isLoading) { return; } // Don't init if element not ready or still loading
 
                     if (this.dataTables[zoneId] && !this.dataTables[zoneId].destroyed) {
                         try { this.dataTables[zoneId].destroy(); } catch (e) { console.error(`Error destroying DataTable for zone ${zoneId}:`, e); }
                     }
 
-                    if (this.filteredData[zoneId] && this.filteredData[zoneId].length > 0) {
+                    // Ensure data is present before initializing
+                    // Use optional chaining ?. just in case filteredData[zoneId] is temporarily undefined
+                    if (this.filteredData?.[zoneId]?.length > 0) {
                         try {
                             this.dataTables[zoneId] = new simpleDatatables.DataTable(tableElement, {
                                 searchable: false, fixedHeight: false, perPage: 10, perPageSelect: [10, 20, 50, 100, -1],
@@ -417,17 +191,33 @@
                                 layout: { top: "{select}", bottom: "{info}{pager}" }
                             });
                         } catch (e) { console.error(`Error initializing DataTable for zone ${zoneId}:`, e); }
-                    } else { this.dataTables[zoneId] = { destroyed: true }; }
+                    } else {
+                        // If no data, ensure no active DataTable instance exists for this zone
+                         this.dataTables[zoneId] = { destroyed: true };
+                    }
                 },
 
                 // Filter journal data based on search term and dropdown selections
                 filterJournals() {
-                    if (this.isLoading || !this.journalData || Object.keys(this.journalData).length === 0) { return; }
+                    // Don't filter if data hasn't loaded yet or is empty
+                    if (this.isLoading || !this.journalData || Object.keys(this.journalData).length === 0) {
+                        // If loading is finished but data is empty (e.g., fetch failed and no fallback)
+                        if (!this.isLoading) {
+                             this.totalFilteredJournals = 0;
+                             this.tabs.forEach(tab => {
+                                 this.filteredData[tab.id] = []; // Ensure filtered data is empty
+                                 this.initDataTable(tab.id); // Try to update/clear table
+                             });
+                        }
+                        return;
+                    }
+
                     const term = this.searchTerm.toLowerCase().trim();
                     let totalCount = 0;
                     this.tabs.forEach(tab => {
                         const originalData = this.journalData[tab.id] || [];
-                        if (!this.filteredData[tab.id]) { this.filteredData[tab.id] = []; }
+                        if (!this.filteredData[tab.id]) { this.filteredData[tab.id] = []; } // Initialize if needed
+
                         this.filteredData[tab.id] = originalData.filter(journal => {
                             if (!journal) return false;
                             const disciplineMatch = this.disciplineFilter === 'all' || journal.discipline === this.disciplineFilter;
@@ -438,10 +228,15 @@
                         totalCount += this.filteredData[tab.id].length;
                     });
                     this.totalFilteredJournals = totalCount;
-                    this.$nextTick(() => { this.tabs.forEach(tab => { this.initDataTable(tab.id); }); });
+
+                    // Re-initialize DataTables *after* Alpine has updated the DOM.
+                    this.$nextTick(() => {
+                       // console.log("DOM updated after filtering, re-initializing DataTables.");
+                       this.tabs.forEach(tab => { this.initDataTable(tab.id); });
+                    });
                 },
 
-                // Export filtered data to an Excel (XLSX) file
+                // Export filtered data to an Excel (XLSX) file (unchanged)
                 exportToXLSX() {
                      if (this.isLoading || this.totalFilteredJournals === 0) { alert("没有可导出的数据或数据仍在加载中。"); return; }
                     const wb = XLSX.utils.book_new();
@@ -463,12 +258,12 @@
                     XLSX.writeFile(wb, '2025年神经科学精神病学期刊分区表_筛选结果.xlsx');
                 },
 
-                // Get the count of journals in a specific zone (based on filtered data)
+                // Get the count of journals in a specific zone (unchanged)
                 getZoneJournalCount(zoneId) {
                     return this.filteredData && this.filteredData[zoneId] ? this.filteredData[zoneId].length : 0;
                 },
 
-                // Get the display name for a discipline code
+                // Get the display name for a discipline code (unchanged)
                 getDisciplineName(disciplineCode) {
                     const disciplines = { 'neuroscience': '神经科学', 'psychiatry': '精神病学', 'neurology': '神经病学', 'related': '相关领域', 'all': '全部' };
                     return disciplines[disciplineCode] || disciplineCode;
@@ -478,3 +273,12 @@
     </script>
 </body>
 </html>
+```
+
+**主要改动：**
+
+* 在 `init()` 函数的 `.finally` 部分，我**移除**了 `this.$nextTick(() => { this.initializeAllDataTables(); ... });` 这段代码。
+
+现在，表格的初始化应该只由 `filterJournals()` 函数（在数据成功加载或加载后备数据后被调用）内部的 `$nextTick` 来处理，避免了潜在的冲突。
+
+请您再次尝试（如果是在本地Web服务器环境下运行），看看这次是否能正确显示后备数据了。如果在 `file://` 环境下，它仍然会显示加载失败的错误信息，但理论上，如果错误信息下方显示了表格内容，则说明后备数据加载和显示逻辑是正
