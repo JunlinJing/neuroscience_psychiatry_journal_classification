@@ -5,10 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>2025年中科院神经科学/精神病学期刊分区表</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/simple-datatables@latest/dist/style.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.0.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.10.5/dist/cdn.min.js" defer></script>
-    <script src="https://cdn.jsdelivr.net/npm/simple-datatables@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <style>
         /* Import Noto Sans SC font from Google Fonts */
@@ -182,23 +180,32 @@
                 </div>
 
                 <div :class="`zone-${tab.id} rounded-b-lg p-1 md:p-4 overflow-x-auto`">
-                    <table :id="`zone-${tab.id}-table`" class="w-full stripe hover simple-datatable"> <thead>
-                            <tr>
-                                <th class="text-left">期刊全称（英文/中文）</th>
-                                <th class="text-left">期刊缩写</th>
-                                <th class="text-center">ISSN</th>
-                                <th class="text-center">影响因子</th>
-                                <th class="text-center">h指数</th>
-                                <th class="text-center">CiteScore</th>
-                                <th class="text-center">JCR分区</th>
-                                <th class="text-center">中科院大类</th>
-                                <th class="text-center">中科院小类</th>
-                                <th class="text-center">收录情况</th>
-                                <th class="text-center">OA</th>
+                    <!-- 添加调试信息 -->
+                    <div x-show="filteredData[tab.id].length === 0" class="text-center py-4 text-gray-500">
+                        未找到匹配的期刊数据
+                    </div>
+                    <div x-show="filteredData[tab.id].length > 0" class="text-sm text-gray-600 mb-2">
+                        显示 <span x-text="filteredData[tab.id].length"></span> 条记录
+                    </div>
+                    <table class="w-full stripe hover border-collapse"> 
+                        <thead>
+                            <tr class="bg-gray-100">
+                                <th class="text-left p-2 border">期刊全称（英文/中文）</th>
+                                <th class="text-left p-2 border">期刊缩写</th>
+                                <th class="text-center p-2 border">ISSN</th>
+                                <th class="text-center p-2 border">影响因子</th>
+                                <th class="text-center p-2 border">h指数</th>
+                                <th class="text-center p-2 border">CiteScore</th>
+                                <th class="text-center p-2 border">JCR分区</th>
+                                <th class="text-center p-2 border">中科院大类</th>
+                                <th class="text-center p-2 border">中科院小类</th>
+                                <th class="text-center p-2 border">收录情况</th>
+                                <th class="text-center p-2 border">OA</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <template x-for="(journal, jIndex) in filteredData[tab.id]" :key="journal.issn"> <tr>
+                            <!-- 使用计算后的分页数据 -->
+                            <template x-for="(journal, jIndex) in getPaginatedData(tab.id)" :key="jIndex"> <tr class="hover:bg-gray-100 border-b">
                                     <td>
                                         <div class="font-medium" x-text="journal.nameEn"></div>
                                         <div class="text-sm text-gray-600" x-text="journal.nameCn || '-'"></div>
@@ -243,6 +250,48 @@
                             </template>
                         </tbody>
                     </table>
+                    
+                    <!-- 分页控件 -->
+                    <div class="flex flex-wrap items-center justify-between mt-4 text-sm">
+                        <div class="flex items-center space-x-2 mb-2 sm:mb-0">
+                            <span class="text-gray-600">每页显示:</span>
+                            <select 
+                                x-model.number="itemsPerPage" 
+                                @change="currentPage = 1; filterJournals()"
+                                class="border rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            >
+                                <option value="10">10</option>
+                                <option value="25">25</option>
+                                <option value="50">50</option>
+                                <option value="100">100</option>
+                            </select>
+                            <span class="text-gray-600" x-text="`显示 ${filteredData[tab.id].length} 条记录中的 ${Math.min(filteredData[tab.id].length, getPaginatedData(tab.id).length)} 条`"></span>
+                        </div>
+                        
+                        <div class="flex items-center space-x-1">
+                            <button 
+                                @click="currentPage = Math.max(1, currentPage - 1)" 
+                                :disabled="currentPage === 1"
+                                :class="{'opacity-50 cursor-not-allowed': currentPage === 1}"
+                                class="px-3 py-1 border rounded hover:bg-gray-100"
+                            >
+                                <i class="fas fa-chevron-left"></i>
+                            </button>
+                            
+                            <span class="px-3 py-1 border rounded bg-gray-100">
+                                <span x-text="currentPage"></span> / <span x-text="Math.ceil(filteredData[tab.id].length / itemsPerPage) || 1"></span>
+                            </span>
+                            
+                            <button 
+                                @click="currentPage = Math.min(Math.ceil(filteredData[tab.id].length / itemsPerPage) || 1, currentPage + 1)" 
+                                :disabled="currentPage >= Math.ceil(filteredData[tab.id].length / itemsPerPage) || filteredData[tab.id].length === 0"
+                                :class="{'opacity-50 cursor-not-allowed': currentPage >= Math.ceil(filteredData[tab.id].length / itemsPerPage) || filteredData[tab.id].length === 0}"
+                                class="px-3 py-1 border rounded hover:bg-gray-100"
+                            >
+                                <i class="fas fa-chevron-right"></i>
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </template>
@@ -312,6 +361,8 @@
                     { id: '4', name: '四区' }
                 ],
                 dataTables: {}, // Object to hold DataTable instances
+                currentPage: 1, // 当前页码
+                itemsPerPage: 10, // 每页显示的条目数
                 // Sample journal data (should be loaded externally in a real app)
                 journalData: {
                      '1': [ // Zone 1 Data
@@ -370,86 +421,88 @@
 
                 // Initialization function, called when the component loads
                 init() {
-                    // Apply initial filtering *before* initializing DataTables
-                    this.filterJournals();
-
-                    // Wait for the next DOM update cycle to initialize DataTables
-                    this.$nextTick(() => {
-                        this.initializeAllDataTables();
+                    console.log('Initializing journal app...');
+                    // 确保journalData中有数据
+                    console.log('Journal data:', this.journalData);
+                    
+                    // Initialize filteredData with all data first
+                    this.tabs.forEach(tab => {
+                        if (this.journalData[tab.id] && this.journalData[tab.id].length > 0) {
+                            this.filteredData[tab.id] = [...this.journalData[tab.id]];
+                            console.log(`Loaded ${this.filteredData[tab.id].length} journals for zone ${tab.id}`);
+                        } else {
+                            console.warn(`No journal data found for zone ${tab.id}`);
+                            this.filteredData[tab.id] = [];
+                        }
                     });
+                    
+                    // Calculate total count
+                    this.totalFilteredJournals = Object.values(this.filteredData)
+                        .reduce((sum, arr) => sum + arr.length, 0);
+                    console.log(`Total journals: ${this.totalFilteredJournals}`);
+                    
+                    // Wait for the DOM to be fully rendered before initializing DataTables
+                    setTimeout(() => {
+                        this.initializeAllDataTables();
+                    }, 100);
 
-                     // Watch for changes in activeTab to potentially re-init DataTable if needed
+                    // Watch for changes in activeTab to re-init DataTable if needed
                     this.$watch('activeTab', (newTabId) => {
-                        this.$nextTick(() => {
-                            // Ensure DataTable is initialized for the newly active tab
-                            if (!this.dataTables[newTabId] || this.dataTables[newTabId].destroyed) {
+                        // Small delay to ensure the tab content is visible
+                        setTimeout(() => {
+                            const tableElement = document.querySelector(`#zone-${newTabId}-table`);
+                            if (tableElement && tableElement.offsetParent !== null) {
                                 this.initDataTable(newTabId);
                             }
-                        });
+                        }, 50);
                     });
+                    
+                    // 初始调用一次filterJournals确保数据已经过滤
+                    this.filterJournals();
                 },
 
-                // Initialize or re-initialize DataTables for all visible tabs
+                // 简化表格初始化，不再使用DataTables库
                 initializeAllDataTables() {
+                    console.log('Initializing tables for all zones');
+                    // 不再需要初始化DataTables，由Alpine.js直接处理表格渲染
+                    // 确保所有区域的数据都已加载
                     this.tabs.forEach(tab => {
-                        // Check if the tab is currently potentially visible or will be soon
-                        // This optimization might be needed if there were many tabs
-                        // For now, initialize all
-                        this.initDataTable(tab.id);
+                        if (!this.filteredData[tab.id] || this.filteredData[tab.id].length === 0) {
+                            this.filteredData[tab.id] = [...(this.journalData[tab.id] || [])];
+                            console.log(`Loaded data for zone ${tab.id}, count: ${this.filteredData[tab.id].length}`);
+                        }
                     });
                 },
 
-
-                // Initialize or re-initialize a DataTable for a specific zone
+                // 简化的表格初始化函数
                 initDataTable(zoneId) {
-                    // Check if element exists and is not already initialized
-                    const tableElement = document.querySelector(`#zone-${zoneId}-table.simple-datatable`);
-                    if (!tableElement) {
-                        console.warn(`Table element not found for zone ${zoneId}`);
-                        return;
-                    }
-
-                    // Destroy existing DataTable instance if it exists and is not destroyed
-                    if (this.dataTables[zoneId] && !this.dataTables[zoneId].destroyed) {
-                        this.dataTables[zoneId].destroy();
-                    }
-
-                     // Ensure data is present before initializing
-                    if (this.filteredData[zoneId].length > 0) {
-                        try {
-                            this.dataTables[zoneId] = new simpleDatatables.DataTable(tableElement, {
-                                searchable: false, // Disable internal search, use Alpine's search
-                                fixedHeight: false, // Adjust height automatically
-                                perPage: 10, // Default items per page
-                                perPageSelect: [10, 20, 50, 100, -1], // Options for items per page, -1 for "All"
-                                labels: { // Customize labels (translate to Chinese)
-                                    placeholder: "搜索...", // Not used due to searchable: false
-                                    perPage: "每页显示 {select} 条",
-                                    noRows: "未找到匹配的期刊",
-                                    info: "显示第 {start} 至 {end} 条，共 {rows} 条",
-                                    noResults: "未找到匹配 \"{search}\" 的结果", // Message when internal search finds nothing
-                                },
-                                layout: {
-                                    top: "{select}{search}", // Keep select dropdown, remove search input
-                                    bottom: "{info}{pager}"
-                                }
-                            });
-                        } catch (e) {
-                             console.error(`Error initializing DataTable for zone ${zoneId}:`, e);
-                        }
-                    } else {
-                         // If no data, don't initialize DataTable, maybe show a message directly in HTML
-                         console.log(`No data for zone ${zoneId}, DataTable not initialized.`);
+                    console.log(`Ensuring data is loaded for zone ${zoneId}`);
+                    // 确保数据已经正确加载到filteredData中
+                    if (!this.filteredData[zoneId] || this.filteredData[zoneId].length === 0) {
+                        // 如果filteredData为空，从journalData重新加载
+                        this.filteredData[zoneId] = [...(this.journalData[zoneId] || [])];
+                        console.log(`Reloaded data for zone ${zoneId}, count: ${this.filteredData[zoneId].length}`);
                     }
                 },
 
                 // Filter journal data based on search term and dropdown selections
                 filterJournals() {
+                    console.log('Filtering journals...');
                     const term = this.searchTerm.toLowerCase().trim(); // Lowercase and trim search term
                     let totalCount = 0;
 
+                    // 重置当前页码为第一页，确保筛选后从第一页开始显示
+                    this.currentPage = 1;
+
                     this.tabs.forEach(tab => {
-                        const originalData = this.journalData[tab.id] || []; // Ensure original data exists
+                        // 确保从journalData获取原始数据
+                        const originalData = this.journalData[tab.id] || [];
+                        console.log(`Zone ${tab.id} original data count: ${originalData.length}`);
+
+                        // 如果原始数据为空，尝试重新初始化
+                        if (originalData.length === 0) {
+                            console.warn(`No data found for zone ${tab.id}, check journalData initialization`);
+                        }
 
                         this.filteredData[tab.id] = originalData.filter(journal => {
                             // Discipline filter logic
@@ -468,20 +521,32 @@
 
                             return disciplineMatch && indexMatch && termMatch;
                         });
+                        
+                        console.log(`Zone ${tab.id} filtered data count: ${this.filteredData[tab.id].length}`);
                         totalCount += this.filteredData[tab.id].length; // Add count for this zone
                     });
 
                     this.totalFilteredJournals = totalCount; // Update total count
+                    console.log(`Total filtered journals: ${this.totalFilteredJournals}`);
+                    
+                    // 确保当前活动标签的数据已加载
+                    setTimeout(() => {
+                        this.initDataTable(this.activeTab);
+                    }, 50);
 
                     // IMPORTANT: Let Alpine handle DOM updates based on filteredData.
                     // Re-initialize DataTables *after* Alpine has updated the DOM.
                     this.$nextTick(() => {
-                       this.tabs.forEach(tab => {
-                           // Only re-initialize if the table exists for this tab
-                           if (document.querySelector(`#zone-${tab.id}-table.simple-datatable`)) {
-                               this.initDataTable(tab.id);
-                           }
-                       });
+                        // Force a small delay to ensure DOM is fully updated
+                        setTimeout(() => {
+                            this.tabs.forEach(tab => {
+                                // Only re-initialize if the table exists for this tab
+                                const tableElement = document.querySelector(`#zone-${tab.id}-table`);
+                                if (tableElement) {
+                                    this.initDataTable(tab.id);
+                                }
+                            });
+                        }, 50); // Small delay to ensure DOM is ready
                     });
                 },
 
@@ -554,6 +619,24 @@
                         'all': '全部' // Added for display consistency
                     };
                     return disciplines[disciplineCode] || disciplineCode; // Return code if name not found
+                },
+                
+                // 获取分页后的数据
+                getPaginatedData(zoneId) {
+                    if (!this.filteredData[zoneId] || this.filteredData[zoneId].length === 0) {
+                        return [];
+                    }
+                    
+                    // 确保页码不超出范围
+                    const maxPage = Math.ceil(this.filteredData[zoneId].length / this.itemsPerPage) || 1;
+                    if (this.currentPage > maxPage) {
+                        this.currentPage = maxPage;
+                    }
+                    
+                    const startIndex = (this.currentPage - 1) * this.itemsPerPage;
+                    const endIndex = startIndex + this.itemsPerPage;
+                    
+                    return this.filteredData[zoneId].slice(startIndex, endIndex);
                 }
             };
         }
